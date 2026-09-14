@@ -9,7 +9,7 @@ output "sas_alert_enabled" {
 }
 
 # The rendered queries, so the fire drill in docs/runbooks/storage-alerts.md pastes
-# the exact text the rule evaluates:  terraform output -raw query_sas_outside_egress
+# the exact text the rule evaluates:  terraform output -raw query_sas_used
 output "query_anonymous_success" {
   value       = module.storage_detection.query_anonymous_success
   description = "Alert 1's query, as evaluated."
@@ -20,7 +20,7 @@ output "query_container_list" {
   description = "Alert 2's query, as evaluated."
 }
 
-output "query_sas_outside_egress" {
-  value       = module.storage_detection.query_sas_outside_egress
-  description = "Alert 3's query, as evaluated, with the egress ranges substituted."
+output "query_sas_used" {
+  value       = module.storage_detection.query_sas_used
+  description = "Alert 3's query, as evaluated."
 }

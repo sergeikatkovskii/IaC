@@ -74,29 +74,29 @@ variable "log_retention_days" {
   }
 }
 
-# ── Alert 3's egress ranges ────────────────────────────────────────────────────
+# ── Alert 3 ────────────────────────────────────────────────────────────────────
+# `cluster_egress_cidrs` and `office_vpn_cidrs` stood here until KAT-417 T-005.
+# They carved a benign case out of Alert 3 — a SAS from the cluster's own egress —
+# and T-005 removed the benign case instead, by removing the code that mints a SAS.
+# They are deleted rather than left unused: an input nothing reads is an input an
+# operator will fill in and believe.
 
-variable "cluster_egress_cidrs" {
-  type        = list(string)
-  description = "The AKS cluster's outbound addresses — the only place a SAS should legitimately be presented from."
-  default     = []
-}
-
-variable "office_vpn_cidrs" {
-  type        = list(string)
-  description = "Office / VPN ranges, for an operator working through a jump host."
-  default     = []
-}
-
-variable "enable_sas_egress_alert" {
+variable "enable_sas_alert" {
   type        = bool
   description = <<-EOT
-    Alert 3 is OFF by default and this is deliberate. Until KAT-417 T-005 relays
-    downloads through the API, every customer clicking their own download link
-    presents a SAS from their own address, so the rule's common case is benign and
-    it would be muted within a day. Turn it on when T-005 ships.
+    Alert 3: any SAS-authenticated request that succeeds. ON by default since
+    KAT-417 T-005, which relays every download through the API and removes the last
+    code in the product that can sign a URL — so a SAS existing at all is a fact
+    about a human, a leaked key or a second system, and there is no benign case to
+    carve out.
+
+    It was `false` before that, scoped to callers outside the cluster egress,
+    because a customer clicking their own download link was indistinguishable from
+    a leak. Turn it off only if the deferred direct-upload option (KAT-416 §8 Q5)
+    is ever taken — and rewrite the rule at the same time rather than leaving a
+    muted one behind, because a muted rule still looks like coverage.
   EOT
-  default     = false
+  default     = true
 }
 
 variable "skip_query_validation" {

@@ -1,0 +1,54 @@
+// Alert 3 — a SAS-authenticated request succeeded. Any SAS, from anywhere.
+//
+// Backs ARD-039 §3 (the account is not on the internet) and §8 Q1 (shared-key
+// removal). This is the rule that catches a storage credential being *used*.
+//
+// ── Why "any SAS" and not "a SAS from outside the egress" ───────────────────────
+//
+// Until KAT-417 T-005 this rule was scoped to callers outside the cluster's
+// egress, because a customer clicking their own download link presented a SAS
+// from their own address and was indistinguishable from a leak. That made the
+// rule's common case benign, so it shipped DISABLED — an alert whose common case
+// is benign gets muted, and a muted alert is worse than no alert because it looks
+// like coverage on a diagram.
+//
+// T-005 relays every download through the API and deletes the last thing in the
+// product that could sign anything (asserted structurally by
+// `backend/tests/test_download_url_scope.py`, which refuses every signing helper
+// anywhere under `app/`). So there is no longer a benign case to carve out, and
+// the address is no longer the interesting dimension: **nothing this product runs
+// can mint a SAS**, which makes any SAS at all a fact about a human, a leaked key
+// or a second system. That is a sharper rule and a simpler one — no CIDR list to
+// maintain, and no way for a stale CIDR to silently widen it.
+//
+// ── What a hit means ───────────────────────────────────────────────────────────
+//
+// Someone minted a SAS with the account key, which means they hold the account
+// key. See docs/runbooks/storage-alerts.md. The one legitimate cause is an
+// operator doing it by hand — which is exactly a thing worth knowing about, and
+// the runbook's "fire it on purpose" drill for this rule is that same act.
+//
+// If the deferred direct-upload option (KAT-416 §8 Q5) is ever taken, this rule
+// fires on every upload and must be rewritten before that ships — not muted
+// afterwards. Re-opening the account to a browser is a change of security
+// posture, and this rule going off is the posture saying so.
+//
+// ── A parsing detail kept from the previous version ─────────────────────────────
+//
+// `CallerIpAddress` is logged as `ip:port` for IPv4, so it is split before being
+// projected. It is no longer used as a filter — an address that cannot be parsed
+// can no longer make this rule silently never fire — but it is the first thing a
+// responder wants, so it is still in the output.
+StorageBlobLogs
+| where AuthenticationType == "SAS"
+| where StatusCode >= 200 and StatusCode < 300
+| extend CallerIp = tostring(split(CallerIpAddress, ":")[0])
+| project
+    TimeGenerated,
+    AccountName,
+    OperationName,
+    CallerIp,
+    CallerIpAddress,
+    RequesterObjectId,
+    StatusCode,
+    Uri

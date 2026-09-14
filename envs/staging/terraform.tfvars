@@ -17,10 +17,9 @@ storage_account_id = "/subscriptions/REPLACE/resourceGroups/katachi-staging/prov
 log_analytics_workspace_id = ""
 log_retention_days         = 30
 
-# Alert 3 stays off until KAT-417 T-005 relays downloads through the API.
-enable_sas_egress_alert = false
-cluster_egress_cidrs    = []
-office_vpn_cidrs        = []
+# Alert 3: any SAS-authenticated request that succeeds. ON since KAT-417 T-005 —
+# the product relays every download and mints no storage credential at all.
+enable_sas_alert = true
 
 alert_email_receivers = {
   oncall = "sergei.katkovskii@gmail.com"

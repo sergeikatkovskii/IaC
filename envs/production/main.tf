@@ -1,4 +1,4 @@
-# Production — KAT-417 T-004 storage detection.
+# Production — KAT-417 storage detection (T-004, Alert 3 enabled by T-005).
 #
 # This root holds no resources of its own. It selects an environment's values and
 # calls the shared module, so staging and production differ by tfvars rather than
@@ -15,9 +15,7 @@ module "storage_detection" {
   log_analytics_workspace_id = var.log_analytics_workspace_id
   log_retention_days         = var.log_retention_days
 
-  cluster_egress_cidrs    = var.cluster_egress_cidrs
-  office_vpn_cidrs        = var.office_vpn_cidrs
-  enable_sas_egress_alert = var.enable_sas_egress_alert
+  enable_sas_alert = var.enable_sas_alert
 
   alert_email_receivers = var.alert_email_receivers
   alert_webhook_url     = var.alert_webhook_url

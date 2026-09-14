@@ -35,22 +35,10 @@ variable "log_retention_days" {
   default     = 30
 }
 
-variable "cluster_egress_cidrs" {
-  type        = list(string)
-  description = "The cluster's outbound addresses."
-  default     = []
-}
-
-variable "office_vpn_cidrs" {
-  type        = list(string)
-  description = "Office / VPN ranges."
-  default     = []
-}
-
-variable "enable_sas_egress_alert" {
+variable "enable_sas_alert" {
   type        = bool
-  description = "Off until KAT-417 T-005 relays downloads. See docs/runbooks/storage-alerts.md."
-  default     = false
+  description = "Alert 3: any SAS used at all. On since KAT-417 T-005 — this product mints none. See docs/runbooks/storage-alerts.md."
+  default     = true
 }
 
 variable "alert_email_receivers" {

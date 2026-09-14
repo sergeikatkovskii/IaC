@@ -5,7 +5,7 @@
 #
 #   Alert 1  anonymous success          <- §4, the container is private
 #   Alert 2  container-scoped ListBlobs <- §5, the SAS carries no `list`
-#   Alert 3  SAS from outside egress    <- §3, the account is not on the internet
+#   Alert 3  any SAS used at all        <- §3, the account is not on the internet
 #
 # Deliberately NOT here: request-rate and throttling. That is a capacity signal, it
 # belongs with KAT-211's uptime and error tracking, and mixing capacity into a
@@ -19,13 +19,13 @@ locals {
 
   workspace_id = var.log_analytics_workspace_id != "" ? var.log_analytics_workspace_id : azurerm_log_analytics_workspace.storage[0].id
 
-  sas_allowed_cidrs = concat(var.cluster_egress_cidrs, var.office_vpn_cidrs)
 
   query_anonymous_success = file("${path.module}/queries/anonymous-success.kql")
   query_container_list    = file("${path.module}/queries/container-list.kql")
-  query_sas_outside_egress = templatefile("${path.module}/queries/sas-outside-egress.kql.tftpl", {
-    allowed_cidrs = jsonencode(local.sas_allowed_cidrs)
-  })
+  # No `templatefile` since KAT-417 T-005: the rule takes no CIDR list any more,
+  # so there is nothing to interpolate and the query is a plain file that can be
+  # pasted into the portal's Logs blade verbatim to test it.
+  query_sas_used = file("${path.module}/queries/sas-used.kql")
 }
 
 # ── The single point of failure for this whole task ────────────────────────────
@@ -169,23 +169,29 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "container_list" {
   }
 }
 
-# ── Alert 3 — SAS used from outside the expected egress ────────────────────────
+# ── Alert 3 — any SAS used at all ──────────────────────────────────────────────
+# Enabled since KAT-417 T-005. It was scoped to callers outside the cluster egress
+# and shipped disabled, because a customer clicking their own download link was
+# indistinguishable from a leak. T-005 relays every download and deletes the last
+# thing in the product that can sign a URL, so the rule has no benign case left —
+# and the sharper form needs no CIDR list, which also removes the way a stale one
+# could silently widen it.
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sas_outside_egress" {
-  name                = "katachi-storage-sas-outside-egress-${local.suffix}"
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sas_used" {
+  name                = "katachi-storage-sas-used-${local.suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
-  description = "A SAS succeeded from outside the cluster egress. Until KAT-417 T-005 relays downloads this is usually a customer; see docs/runbooks/storage-alerts.md before escalating."
+  description = "A SAS-authenticated request succeeded. This product mints none, so someone holds the account key. See docs/runbooks/storage-alerts.md."
   severity    = 1
-  enabled     = var.enable_sas_egress_alert
+  enabled     = var.enable_sas_alert
 
   scopes               = [local.workspace_id]
   evaluation_frequency = "PT5M"
   window_duration      = "PT5M"
 
   criteria {
-    query                   = local.query_sas_outside_egress
+    query                   = local.query_sas_used
     time_aggregation_method = "Count"
     threshold               = 0
     operator                = "GreaterThan"
@@ -201,18 +207,5 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sas_outside_egress" {
 
   action {
     action_groups = [azurerm_monitor_action_group.storage_security.id]
-  }
-
-  lifecycle {
-    precondition {
-      # With no ranges the range test is not meaningful: an empty dynamic array
-      # makes ipv4_is_in_any_range match nothing, and whether that reads as false
-      # (every SAS request alerts) or as null (the row is filtered and the rule
-      # never fires at all) is not worth depending on. Neither is a configuration
-      # anyone wants, and the second one is the dangerous kind — a rule that looks
-      # like coverage and sees nothing.
-      condition     = !var.enable_sas_egress_alert || length(local.sas_allowed_cidrs) > 0
-      error_message = "enable_sas_egress_alert = true requires at least one entry in cluster_egress_cidrs or office_vpn_cidrs."
-    }
   }
 }

@@ -17,12 +17,12 @@ log_analytics_workspace_id = ""
 # weeks later. Still sized to answer an incident, not an auditor.
 log_retention_days = 90
 
-# Alert 3 stays off until KAT-417 T-005 relays downloads through the API. When it
-# lands, set this true AND fill cluster_egress_cidrs — the module refuses the
-# combination of "enabled" with no ranges, because that is a pager that never stops.
-enable_sas_egress_alert = false
-cluster_egress_cidrs    = []
-office_vpn_cidrs        = []
+# Alert 3: any SAS-authenticated request that succeeds. ON since KAT-417 T-005 —
+# the product relays every download and mints no storage credential at all, so a
+# SAS existing is a fact about a human, a leaked key or a second system. It took
+# no CIDR list with it: the egress carve-out existed to excuse customer downloads,
+# and there are none to excuse.
+enable_sas_alert = true
 
 alert_email_receivers = {
   oncall = "sergei.katkovskii@gmail.com"
