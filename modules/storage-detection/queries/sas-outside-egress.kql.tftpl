@@ -1,0 +1,42 @@
+// Alert 3 — a SAS-authenticated request that succeeded from outside the expected egress.
+//
+// Backs ARD-039 §3 (the account is not on the internet). This is the rule that
+// catches a leaked download URL being *used* — the failure T-002's 10-minute TTL
+// bounds but does not prevent.
+//
+// ── Read this before trusting it ────────────────────────────────────────────────
+//
+// It distinguishes WHO USED the URL, which is all the storage log can see. It
+// cannot see who MINTED it. Until KAT-417 T-005 relays downloads through the API,
+// a customer clicking their own download link arrives here from their own address
+// and is indistinguishable from a leak — which is why this rule ships DISABLED
+// (`enable_sas_egress_alert = false`). An alert whose common case is benign gets
+// muted, and a muted alert is worse than no alert because it looks like coverage.
+//
+// ── Two parsing details that would otherwise make this silently never fire ──────
+//
+// `CallerIpAddress` is logged as `ip:port` for IPv4 — matching it against a CIDR
+// without stripping the port returns false for every row, and the rule would sit
+// green forever looking exactly like a rule with nothing to report.
+//
+// An address that is not IPv4 after that strip is treated as OUTSIDE the egress,
+// so it alerts. That is deliberate: for a security rule, an unparseable caller is
+// a reason to look, not a reason to stay quiet. If the cluster's egress is ever
+// IPv6, this must be revisited rather than left to fail open.
+let allowed_ranges = dynamic(${allowed_cidrs});
+StorageBlobLogs
+| where AuthenticationType == "SAS"
+| where StatusCode >= 200 and StatusCode < 300
+| extend CallerIp = tostring(split(CallerIpAddress, ":")[0])
+| extend IsIpv4 = CallerIp matches regex @"^[0-9]{1,3}(\.[0-9]{1,3}){3}$"
+| extend InEgress = iff(IsIpv4, ipv4_is_in_any_range(CallerIp, allowed_ranges), false)
+| where not(InEgress)
+| project
+    TimeGenerated,
+    AccountName,
+    OperationName,
+    CallerIp,
+    CallerIpAddress,
+    IsIpv4,
+    StatusCode,
+    Uri

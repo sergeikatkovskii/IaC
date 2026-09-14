@@ -1,0 +1,20 @@
+# State holds resource ids and can hold secrets in plaintext. Never committed —
+# with one deliberate exception noted in envs/global/README.md, which bootstraps
+# the backend the others use and therefore keeps local state.
+*.tfstate
+*.tfstate.*
+
+.terraform/
+crash.log
+override.tf
+override.tf.json
+
+# envs/*/terraform.tfvars IS committed on purpose: it holds resource ids, regions,
+# retention and CIDRs — the per-environment values that make one root differ from
+# the other, and none of them is a secret. Secrets arrive as TF_VAR_* or through a
+# local auto.tfvars that never leaves the machine.
+*.auto.tfvars
+*.auto.tfvars.json
+secrets.tfvars
+
+.DS_Store

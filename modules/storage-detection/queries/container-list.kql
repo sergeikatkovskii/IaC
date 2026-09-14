@@ -1,0 +1,35 @@
+// Alert 2 — a container-scoped ListBlobs: enumeration that is not a tenant prefix.
+//
+// Backs ARD-039 §5 (the download SAS carries no `list` permission) and KAT-417
+// T-001's prefix invariant.
+//
+// Nothing in `app/` lists a container. Verified by grep at the time this was
+// written: the product addresses every object by exact name, and the only call
+// that looks like enumeration — `uncommitted_block_indexes` on the resume path —
+// is `GetBlockList`, a different operation against a *single blob*, so it never
+// appears here.
+//
+// The one legitimate enumeration is a **per-tenant prefix** listing, which is what
+// a purge fix would use (`tenant_purge` leaves blobs today — docs/APP.md §30). Every
+// blob name in this product begins with `{tenant_id}/` and `Tenant.id` is an
+// integer, so a legitimate listing is `prefix=<digits>/` and anything else is
+// either an operator with a portal open or someone walking the corpus.
+//
+// `parse_url` is how the requested prefix is recovered: ListBlobs puts it in the
+// query string, not in a header or the path.
+StorageBlobLogs
+| where OperationName == "ListBlobs"
+| where StatusCode >= 200 and StatusCode < 300
+| extend RequestedPrefix = tostring(parse_url(Uri)["Query Parameters"]["prefix"])
+// `not(x matches regex ...)`, not `x !matches regex ...` — KQL has no negated
+// form of this operator, and the shorter spelling does not parse.
+| where isempty(RequestedPrefix) or not(RequestedPrefix matches regex @"^[0-9]+/")
+| project
+    TimeGenerated,
+    AccountName,
+    RequestedPrefix,
+    AuthenticationType,
+    StatusCode,
+    CallerIpAddress,
+    UserAgentHeader,
+    Uri

@@ -1,0 +1,26 @@
+// Alert 1 — an anonymous request that SUCCEEDED.
+//
+// Backs ARD-039 §4 (the container is private) and KAT-417 T-002's boot refusal.
+// After that refusal this should be **structurally impossible**: the API will not
+// start against a publicly accessible container. A row here therefore means one of
+// exactly two things, and the runbook says which to check first:
+//
+//   1. the container's access level was changed under an already-running pod, or
+//   2. the boot check has a hole.
+//
+// Anonymous *failures* are deliberately excluded. The internet knocks on every
+// storage endpoint it can enumerate; 404s and 403s from anonymous callers are
+// weather, not signal. Only a 2xx means someone anonymous actually got bytes.
+StorageBlobLogs
+| where AuthenticationType == "Anonymous"
+| where StatusCode >= 200 and StatusCode < 300
+| project
+    TimeGenerated,
+    AccountName,
+    OperationName,
+    StatusCode,
+    StatusText,
+    CallerIpAddress,
+    UserAgentHeader,
+    ObjectKey,
+    Uri
