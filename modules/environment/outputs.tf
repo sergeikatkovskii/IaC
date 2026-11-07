@@ -109,6 +109,11 @@ output "storage_container_name" {
   value = module.storage.container_name
 }
 
+# KAT-418 T-003: the account's blob address, STORAGE_ACCOUNT_URL in tcm's environment.env.
+output "storage_blob_endpoint" {
+  value = module.storage.blob_endpoint
+}
+
 output "log_workspace_id" {
   value = module.logs.workspace_id
 }

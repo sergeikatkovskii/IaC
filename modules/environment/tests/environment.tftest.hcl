@@ -215,3 +215,45 @@ run "production_has_no_unattended_switch" {
 
   expect_failures = [var.power_schedule]
 }
+
+# KAT-418 T-003 (feature §8 Q7, the founder's "Recommendation accepted", 2026-11-07):
+# three units run storage code, and they alone hold the storage role: the API, the MCP
+# host, and the scheduler, whose nightly purge deletes files. The worker's jobs are
+# ping and deliver_webhook (tcm's test_the_worker_runs_no_storage_job, KAT-418 T-004,
+# ties this list to the code); the migration Job's pod carries no workload identity;
+# Redis and db-bootstrap never touch a file.
+run "storage_is_reached_by_the_api_mcp_and_the_scheduler" {
+  command = plan
+
+  assert {
+    condition     = toset(module.storage.holder_names) == toset(["backend", "mcp", "scheduler"])
+    error_message = "The API, the MCP host and the scheduler hold the storage role, and no other unit does."
+  }
+}
+
+run "the_worker_migrate_and_redis_hold_no_storage_role" {
+  command = plan
+
+  assert {
+    condition     = length(setintersection(toset(module.storage.holder_names), toset(["worker", "migrate", "redis", "db-bootstrap"]))) == 0
+    error_message = "The worker, the migration Job, Redis and db-bootstrap run no storage code, so none holds a storage role, and a token stolen there reaches no file."
+  }
+}
+
+run "the_account_address_comes_out" {
+  command = plan
+
+  override_resource {
+    target          = module.storage.azurerm_storage_account.this
+    override_during = plan
+    values = {
+      id                    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/katachi-test/providers/Microsoft.Storage/storageAccounts/katachistgdataabcde"
+      primary_blob_endpoint = "https://katachistgdataabcde.blob.core.windows.net/"
+    }
+  }
+
+  assert {
+    condition     = output.storage_blob_endpoint == "https://katachistgdataabcde.blob.core.windows.net/"
+    error_message = "The account's address reaches environment.env as STORAGE_ACCOUNT_URL (scripts/overlay_values.py)."
+  }
+}

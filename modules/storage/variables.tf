@@ -12,6 +12,17 @@ variable "resource_group_name" {
   type = string
 }
 
+variable "resource_group_id" {
+  type        = string
+  description = "The only scope the storage role can be given in (KAT-418 T-003)."
+}
+
+variable "data_principal_ids" {
+  type        = map(string)
+  description = "unit => principal id of each unit whose code does storage work; each holds the storage role on the container, and nothing else does (KAT-418 T-003)."
+  default     = {}
+}
+
 variable "location" {
   type = string
 }

@@ -3,6 +3,7 @@ from Terraform's outputs, so no identifier is typed twice (ARD-059 §3, §8)."""
 import io
 import json
 import pathlib
+import re
 import sys
 import tempfile
 import unittest
@@ -35,17 +36,23 @@ CLIENT_ID_REDIS=11111111-0000-0000-0000-000000000007
 CLIENT_ID_DB_BOOTSTRAP=11111111-0000-0000-0000-000000000005
 DB_MAX_USER_CONNECTIONS=414
 DB_ADMIN_USER=katachiadmin
+STORAGE_ACCOUNT_URL=https://katachistgdataabcde.blob.core.windows.net/
 AZURE_SUBSCRIPTION_ID=22222222-0000-0000-0000-000000000001
 CLUSTER_NAME=katachi-staging-aks
 CLUSTER_RESOURCE_GROUP=katachi-staging
 PIPELINE_CLIENT_ID=33333333-0000-0000-0000-000000000001
 PIPELINE_PRINCIPAL_ID=44444444-0000-0000-0000-000000000001
+POSTGRES_SERVER_NAME=katachi-staging-pg-abcde
 SMTP_HOST=smtp.azurecomm.net
 SMTP_USERNAME=katachi-staging-mail.55555555-0000-0000-0000-000000000001.00000000-0000-0000-0000-000000000001
 MAIL_FROM=donotreply@staging.example.test
-POSTGRES_SERVER_NAME=katachi-staging-pg-abcde
 POWER_CLIENT_ID=66666666-0000-0000-0000-000000000001
 """
+
+#: KAT-418 T-003: tcm's backend/tests/test_k8s_manifests.py holds the same order in
+#: ENVIRONMENT_KEYS, PIPELINE_KEYS, MAIL_KEYS and POWER_KEYS (and STORAGE_KEYS until
+#: T-004), and fails a generated file whose keys come in any other. Neither repository
+#: can read the other's test, so a key added here is added there, in the same place.
 
 
 class Overlay(unittest.TestCase):
@@ -159,6 +166,31 @@ class Overlay(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("KEY_VAULT_NAME", out)
         self.assertIn("typed-by-hand", self.env_file.read_text())
+
+    def test_the_account_address_reaches_the_overlay(self):
+        """KAT-418 T-003: the storage account's blob address, where T-004's units
+        reach storage as their own identities, comes from Terraform like the rest."""
+        code, out = self.run_script()
+        self.assertEqual(code, 0, out)
+        self.assertIn("STORAGE_ACCOUNT_URL=https://katachistgdataabcde.blob.core.windows.net/\n",
+                      self.env_file.read_text())
+
+    def test_a_missing_account_address_is_refused(self):
+        outputs = self.outputs()
+        del outputs["storage_blob_endpoint"]
+        code, out = self.run_script(outputs=outputs)
+        self.assertEqual(code, 2)
+        self.assertIn("storage_blob_endpoint", out)
+        self.assertFalse(self.env_file.exists())
+
+    def test_every_output_it_reads_is_declared_by_both_roots(self):
+        """KAT-418 T-003: an output the script reads and an env root forgot to declare
+        is found here, rather than by the founder after his apply."""
+        read = {output for _, output, _ in overlay_values.KEYS + overlay_values.OPTIONAL_KEYS}
+        for env in overlay_values.ENVIRONMENTS:
+            text = (HERE.parents[1] / "envs" / env / "outputs.tf").read_text()
+            declared = set(re.findall(r'^output "([a-z0-9_]+)"', text, re.M))
+            self.assertEqual(sorted(read - declared), [], f"envs/{env}/outputs.tf")
 
 
 if __name__ == "__main__":

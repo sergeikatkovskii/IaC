@@ -53,3 +53,48 @@ resource "azurerm_storage_container" "attachments" {
   storage_account_id    = azurerm_storage_account.this.id
   container_access_type = "private"
 }
+
+# KAT-418 T-003 (feature §8 Q6, the founder's answer of 2026-11-07): the one role the
+# units hold on storage, and only what the code calls. The boot preflight reads the
+# container's properties (it exists, and is not public); every other call reads,
+# writes or deletes a blob. The built-in Storage Blob Data Contributor would also
+# create and delete containers, move and append blobs and make user-delegation keys.
+# The product does none of it, and with that role a stolen pod token could delete the
+# whole container. The role is held on the container, never on the account: making a
+# delegation key is an account-level act, so after T-005 no unit can make a SAS.
+locals {
+  # Built from the account and the container's name rather than from the container's
+  # id, whose shape is the provider's to choose. Naming the container also orders each
+  # assignment after it.
+  container_scope = "${azurerm_storage_account.this.id}/blobServices/default/containers/${azurerm_storage_container.attachments.name}"
+}
+
+resource "azurerm_role_definition" "blob_data" {
+  name        = "${var.name}-blob-data"
+  scope       = var.resource_group_id
+  description = "Read the container's properties, and read, write and delete its blobs, and nothing else (KAT-418)."
+
+  permissions {
+    actions = [
+      "Microsoft.Storage/storageAccounts/blobServices/containers/read",
+    ]
+    data_actions = [
+      "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read",
+      "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/write",
+      "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/delete",
+    ]
+    not_actions      = []
+    not_data_actions = []
+  }
+
+  assignable_scopes = [var.resource_group_id]
+}
+
+resource "azurerm_role_assignment" "blob_data" {
+  for_each = var.data_principal_ids
+
+  scope              = local.container_scope
+  role_definition_id = azurerm_role_definition.blob_data.role_definition_resource_id
+  principal_id       = each.value
+  principal_type     = "ServicePrincipal"
+}

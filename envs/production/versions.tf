@@ -25,6 +25,11 @@ terraform {
 provider "azurerm" {
   features {}
   subscription_id = var.subscription_id
+  # KAT-418 T-003: where the provider reaches a storage account's data plane, it signs
+  # in with Entra and never fetches the account's key. The tenant files account stops
+  # taking a key at T-005; this is set while it still does, so that a plan shows any
+  # such read before then rather than after. envs/global does the same for state.
+  storage_use_azuread = true
 }
 
 provider "azuread" {}

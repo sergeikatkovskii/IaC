@@ -22,6 +22,12 @@ locals {
   # added the migration Job and Redis, which the CSI driver fetches for as well.
   app_units = ["backend", "worker", "scheduler", "mcp", "migrate", "redis"]
 
+  # KAT-418 T-003 (feature §8 Q7): the units whose code does storage work, and so the
+  # only ones holding the storage role on the container. The worker runs no storage
+  # job; tcm's test_the_worker_runs_no_storage_job (KAT-418 T-004) fails the day one
+  # is added, and its message points here.
+  storage_units = ["backend", "mcp", "scheduler"]
+
   cluster_admins = length(var.cluster_admin_object_ids) > 0 ? toset(var.cluster_admin_object_ids) : toset([data.azurerm_client_config.current.object_id])
 }
 
@@ -175,9 +181,11 @@ module "storage" {
 
   name                = "katachi${local.short}data${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
+  resource_group_id   = azurerm_resource_group.this.id
   location            = var.location
   allowed_subnet_ids  = [module.network.aks_subnet_id]
   operator_ip_ranges  = var.operator_ip_ranges
+  data_principal_ids  = { for u in local.storage_units : u => module.identities.unit_principal_ids[u] }
   tags                = local.tags
 }
 

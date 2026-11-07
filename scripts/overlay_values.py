@@ -28,7 +28,10 @@ import sys
 ENVIRONMENTS = ("staging", "production")
 UNITS = ("backend", "worker", "scheduler", "mcp", "migrate", "redis", "db-bootstrap")
 
-# environment.env key -> (Terraform output, key inside a map output or None)
+# environment.env key -> (Terraform output, key inside a map output or None).
+# The order is tcm's too: its backend/tests/test_k8s_manifests.py fails a generated
+# file whose keys come in any other, so a key added here is added there, in the same
+# place (KAT-418 T-003).
 KEYS = [
     ("REGISTRY", "registry_login_server", None),
     ("APP_HOST", "app_host", None),
@@ -43,6 +46,10 @@ KEYS = [
     ("DB_MAX_USER_CONNECTIONS", "postgres_max_user_connections", None),
     # KAT-648 T-004: the server administrator first boot's db-bootstrap signs in as.
     ("DB_ADMIN_USER", "postgres_admin_login", None),
+    # KAT-418 T-003: the storage account's blob address, where the units reach storage
+    # as their own identities from T-004 on (backend-config's AZURE_STORAGE_ACCOUNT_URL).
+    # Nothing reads it before T-004, which gives local's file a stand-in in this place.
+    ("STORAGE_ACCOUNT_URL", "storage_blob_endpoint", None),
     # KAT-648 T-005: what the pipeline (deploy.yml, first-boot.yml) signs in with and
     # reaches, and the identity setup.yml binds the release Role to. kustomize reads
     # none of these. tcm is private; IaC, which is public, never holds them.
@@ -51,14 +58,16 @@ KEYS = [
     ("CLUSTER_RESOURCE_GROUP", "cluster_resource_group", None),
     ("PIPELINE_CLIENT_ID", "pipeline_client_id", None),
     ("PIPELINE_PRINCIPAL_ID", "pipeline_principal_id", None),
+    # KAT-648 T-005: what staging's schedule starts and stops, beside CLUSTER_NAME.
+    # Among the pipeline's keys, where tcm's test expects it (KAT-418 T-003 moved it
+    # up from after the mail keys).
+    ("POSTGRES_SERVER_NAME", "postgres_server_name", None),
     # KAT-648 T-005: where and as whom the product sends mail (Azure Communication
     # Services over SMTP); tcm's k8s/components/mail puts them in backend-config. The
     # password is the vault's, never an output.
     ("SMTP_HOST", "smtp_host", None),
     ("SMTP_USERNAME", "smtp_username", None),
     ("MAIL_FROM", "mail_from", None),
-    # KAT-648 T-005: what staging's schedule starts and stops, beside CLUSTER_NAME.
-    ("POSTGRES_SERVER_NAME", "postgres_server_name", None),
 ]
 
 # Written only where Terraform made the thing: an environment with no schedule has no

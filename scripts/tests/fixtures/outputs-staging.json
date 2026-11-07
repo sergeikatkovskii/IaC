@@ -89,6 +89,11 @@
     "type": "string",
     "value": "katachi-staging-mail.55555555-0000-0000-0000-000000000001.00000000-0000-0000-0000-000000000001"
   },
+  "storage_blob_endpoint": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://katachistgdataabcde.blob.core.windows.net/"
+  },
   "subscription_id": {
     "sensitive": false,
     "type": "string",

@@ -106,6 +106,10 @@ output "storage_container_name" {
   value = module.katachi.storage_container_name
 }
 
+output "storage_blob_endpoint" {
+  value = module.katachi.storage_blob_endpoint
+}
+
 output "log_workspace_id" {
   value = module.katachi.log_workspace_id
 }
