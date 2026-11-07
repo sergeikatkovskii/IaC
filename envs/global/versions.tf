@@ -17,4 +17,7 @@ terraform {
 provider "azurerm" {
   features {}
   subscription_id = var.subscription_id
+  # The state account takes no shared key (main.tf), so the provider reaches its
+  # data plane with Entra too.
+  storage_use_azuread = true
 }

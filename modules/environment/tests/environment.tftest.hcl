@@ -9,10 +9,18 @@ mock_provider "azurerm" {
       client_id       = "55555555-5555-5555-5555-555555555555"
     }
   }
+
+  # KAT-648 T-005: the subscription the provider is pointed at, by its name.
+  mock_data "azurerm_subscription" {
+    defaults = {
+      display_name = "AZ2-NonProd"
+    }
+  }
 }
 
 variables {
   environment           = "staging"
+  subscription_name     = "AZ2-NonProd"
   location              = "centralus"
   resource_group_name   = "katachi-test"
   app_host              = "staging.example.test"
@@ -100,4 +108,32 @@ run "a_placeholder_admin_host_is_refused" {
   }
 
   expect_failures = [var.admin_host]
+}
+
+# KAT-648 T-005: four subscriptions, and az's default is not staging's. The
+# subscription the provider is pointed at must be the one this environment names, or
+# nothing is planned in it.
+run "a_plan_in_another_subscription_is_refused" {
+  command = plan
+
+  variables {
+    subscription_name = "AZ1-TCM"
+  }
+
+  expect_failures = [azurerm_resource_group.this]
+}
+
+# KAT-648 T-005: staging runs the Kubernetes minor minikube proved the manifests on,
+# which the pipeline's kubectl matches; the patch channel keeps it current.
+run "the_cluster_runs_the_minor_it_is_given" {
+  command = plan
+
+  variables {
+    kubernetes_version = "1.35"
+  }
+
+  assert {
+    condition     = module.cluster.kubernetes_version == "1.35"
+    error_message = "environment's kubernetes_version reaches the cluster."
+  }
 }

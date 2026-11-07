@@ -16,6 +16,11 @@ variable "subscription_id" {
   }
 }
 
+variable "subscription_name" {
+  type        = string
+  description = "KAT-648 §8 Q1: production lives in AZ1-TCM. The id is given at run time, never committed; this name is checked against it."
+}
+
 variable "location" {
   type        = string
   description = "KAT-648 §8 Q1: centralus recommended."
@@ -93,6 +98,12 @@ variable "postgres_admin_password_version" {
 variable "cluster_sku_tier" {
   type    = string
   default = "Free"
+}
+
+variable "kubernetes_version" {
+  type        = string
+  description = "The Kubernetes minor, or null for AKS's default (KAT-648 T-005)."
+  default     = null
 }
 
 variable "node_vm_size" {

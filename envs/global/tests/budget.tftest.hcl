@@ -1,8 +1,15 @@
 # KAT-648 T-005 Step 6 — the budget exists before anything else is created.
-mock_provider "azurerm" {}
+mock_provider "azurerm" {
+  mock_data "azurerm_subscription" {
+    defaults = {
+      display_name = "AZ2-NonProd"
+    }
+  }
+}
 
 variables {
   subscription_id       = "00000000-0000-0000-0000-000000000000"
+  subscription_name     = "AZ2-NonProd"
   state_account_name    = "katachitfstate"
   monthly_budget        = 150
   budget_contact_emails = ["ops@example.test"]
@@ -40,4 +47,33 @@ run "a_placeholder_subscription_is_refused" {
   }
 
   expect_failures = [var.subscription_id]
+}
+
+# KAT-648 T-005: applied once in each subscription, and never in the wrong one.
+run "the_state_account_is_never_made_in_another_subscription" {
+  command = plan
+
+  variables {
+    subscription_name = "AZ1-TCM"
+  }
+
+  expect_failures = [azurerm_resource_group.shared]
+}
+
+# KAT-648 T-005: the env roots keep their state here and sign in with Entra
+# (use_azuread_auth), never with the account's key. Owning a subscription grants no
+# right to the blobs inside an account, so the person who applies is given that right
+# here, and the shared keys are off: nothing can sign in with one.
+run "the_state_is_reached_with_entra_and_never_with_a_key" {
+  command = plan
+
+  assert {
+    condition     = azurerm_storage_account.tfstate.shared_access_key_enabled == false
+    error_message = "The state account takes no shared key: the backends sign in with Entra."
+  }
+
+  assert {
+    condition     = azurerm_role_assignment.state_writer.role_definition_name == "Storage Blob Data Contributor"
+    error_message = "The person who applies may read and write the state's blobs."
+  }
 }

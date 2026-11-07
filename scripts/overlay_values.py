@@ -43,6 +43,14 @@ KEYS = [
     ("DB_MAX_USER_CONNECTIONS", "postgres_max_user_connections", None),
     # KAT-648 T-004: the server administrator first boot's db-bootstrap signs in as.
     ("DB_ADMIN_USER", "postgres_admin_login", None),
+    # KAT-648 T-005: what the pipeline (deploy.yml, first-boot.yml) signs in with and
+    # reaches, and the identity setup.yml binds the release Role to. kustomize reads
+    # none of these. tcm is private; IaC, which is public, never holds them.
+    ("AZURE_SUBSCRIPTION_ID", "subscription_id", None),
+    ("CLUSTER_NAME", "cluster_name", None),
+    ("CLUSTER_RESOURCE_GROUP", "cluster_resource_group", None),
+    ("PIPELINE_CLIENT_ID", "pipeline_client_id", None),
+    ("PIPELINE_PRINCIPAL_ID", "pipeline_principal_id", None),
 ]
 
 SAFE = re.compile(r"^[A-Za-z0-9._:/-]+$")

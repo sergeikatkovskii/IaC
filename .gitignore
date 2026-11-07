@@ -16,6 +16,9 @@ override.tf.json
 *.auto.tfvars
 *.auto.tfvars.json
 secrets.tfvars
+# KAT-648 T-005: what this public repository never holds (the subscription's id, the
+# operator's address), given with -var-file at plan and apply.
+*.local.tfvars
 
 .DS_Store
 

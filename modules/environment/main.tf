@@ -4,6 +4,10 @@
 
 data "azurerm_client_config" "current" {}
 
+# KAT-648 T-005: the subscription the provider was pointed at. Its id is given at run
+# time and never committed (IaC is public); its name is committed, and checked.
+data "azurerm_subscription" "current" {}
+
 locals {
   prefix = "katachi-${var.environment}"
   short  = var.environment == "production" ? "prd" : "stg"
@@ -33,6 +37,13 @@ resource "azurerm_resource_group" "this" {
   name     = var.resource_group_name
   location = var.location
   tags     = local.tags
+
+  lifecycle {
+    precondition {
+      condition     = data.azurerm_subscription.current.display_name == var.subscription_name
+      error_message = "The provider is pointed at the subscription \"${data.azurerm_subscription.current.display_name}\", and ${var.environment} lives in \"${var.subscription_name}\". Nothing was planned."
+    }
+  }
 }
 
 module "network" {
@@ -63,6 +74,7 @@ module "cluster" {
   location                   = var.location
   dns_prefix                 = local.prefix
   tenant_id                  = data.azurerm_client_config.current.tenant_id
+  kubernetes_version         = var.kubernetes_version
   sku_tier                   = var.cluster_sku_tier
   node_vm_size               = var.node_vm_size
   node_min_count             = var.node_min_count

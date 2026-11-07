@@ -13,6 +13,11 @@ variable "subscription_id" {
   }
 }
 
+variable "subscription_name" {
+  type        = string
+  description = "KAT-648 §8 Q1: this root is applied once in each subscription (AZ2-NonProd for staging, AZ1-TCM for production, as Azure names them), and the name is checked against the id given at run time."
+}
+
 variable "location" {
   type        = string
   description = "Region for the state account."

@@ -53,19 +53,23 @@ resource "azurerm_federated_identity_credential" "pipeline" {
   audience                  = [local.token_audience]
 }
 
-# At cluster scope the pipeline may only fetch its sign-in configuration.
-resource "azurerm_role_assignment" "pipeline_cluster_user" {
-  scope                = var.cluster_id
-  role_definition_name = "Azure Kubernetes Service Cluster User Role"
-  principal_id         = azurerm_user_assigned_identity.pipeline.principal_id
-  principal_type       = "ServicePrincipal"
+# The pipeline's Azure roles, all of them. At cluster scope it may only fetch its
+# sign-in configuration. Inside the cluster it holds the one release Role, which a
+# person binds to this identity with setup.yml (tcm k8s/setup/<env>/release.yaml), and
+# no Azure role: "AKS RBAC Writer" also reads every Secret in the namespace, and cannot
+# write the custom kinds a release applies (routes, certificates, provider classes)
+# without a custom role and preview ABAC conditions (KAT-648 T-005, ARD-059 §8).
+locals {
+  pipeline_roles = {
+    cluster_user = { scope = var.cluster_id, role = "Azure Kubernetes Service Cluster User Role" }
+  }
 }
 
-# Inside the cluster it writes in one namespace, and cannot create a namespace or
-# grant a right (KAT-648 §8 Q10: Ansible sets up, the pipeline deploys).
-resource "azurerm_role_assignment" "pipeline_writer" {
-  scope                = "${var.cluster_id}/namespaces/${var.namespace}"
-  role_definition_name = "Azure Kubernetes Service RBAC Writer"
+resource "azurerm_role_assignment" "pipeline" {
+  for_each = local.pipeline_roles
+
+  scope                = each.value.scope
+  role_definition_name = each.value.role
   principal_id         = azurerm_user_assigned_identity.pipeline.principal_id
   principal_type       = "ServicePrincipal"
 }

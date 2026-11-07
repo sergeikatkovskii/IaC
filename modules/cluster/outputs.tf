@@ -27,3 +27,8 @@ output "node_resource_group" {
 output "pod_cidr" {
   value = var.pod_cidr
 }
+
+output "kubernetes_version" {
+  description = "The minor the cluster runs (null: AKS's default)."
+  value       = azurerm_kubernetes_cluster.this.kubernetes_version
+}

@@ -85,16 +85,18 @@ task, refuses. It is not a value that merely looks wrong.
 
 | Value | Where | Whose answer |
 |---|---|---|
-| `subscription_id` | every root's `terraform.tfvars` | the founder, KAT-648 §8 Q1 (*"later"*) |
-| `app_host`, `mcp_host` | staging and production tfvars, `ansible/inventories/*` | the founder, §8 Q2 |
-| `operator_ip_ranges` | staging and production tfvars | the address Terraform and `secrets.yml` run from |
-| `monthly_budget` | `envs/global/terraform.tfvars` | the founder, §8 Q7 |
+| `subscription_id` | **never committed**: `<root>/<name>.local.tfvars`, which `.gitignore` keeps local, read from Azure by the subscription's name | §8 Q1: staging in AZ2-NonProd, production in AZ1-TCM; each root checks `subscription_name` against it |
+| `app_host`, `mcp_host`, `admin_host` | staging (answered: `staging.katachi.io` and its `mcp.` and `admin.`) and production tfvars, `ansible/inventories/*` | the founder, §8 Q2 |
+| `operator_ip_ranges` | **never committed**: the same `.local.tfvars`, as a bare IP (Azure Storage refuses `/32`) | the address Terraform and `secrets.yml` run from |
+| `monthly_budget` | `envs/global/<subscription>.tfvars` (staging's: 450 USD) | the founder, §8 Q7 |
 | `acme_email`, the gateway's address | `ansible/inventories/{staging,production}` | the contact for Let's Encrypt; Terraform's outputs |
 
 The database tier (B2s) and Azure's managed PostgreSQL are §8 Q3's recommendation,
 built as the default and changeable in tfvars.
 
 ## Four rules for this repo
+
+**This repository is public** (KAT-648 T-005, measured 2026-11-07): what it must not publish, the subscription's id and the operator's address, lives in git-ignored `*.local.tfvars`, given with `-var-file`. tcm's `docs/runbooks/staging.md` has every command, in order.
 
 **`envs/*/terraform.tfvars` is committed; secrets are not.** Those files hold names,
 regions, sizes and CIDRs, none of them secret. The one secret a root takes, an alert

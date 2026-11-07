@@ -56,16 +56,21 @@ run "the_pipeline_signs_in_only_from_its_environment" {
   }
 }
 
-run "the_pipeline_writes_only_in_its_namespace" {
+# KAT-648 T-005: inside the cluster the pipeline holds the one release Role, bound by a
+# person with setup.yml (tcm k8s/setup/<env>/release.yaml), and no Azure role at all:
+# Azure's "AKS RBAC Writer" also reads every Secret in the namespace, and cannot write
+# the custom kinds a release applies without a custom role and preview ABAC
+# conditions. Its one Azure role fetches its sign-in configuration.
+run "the_pipelines_only_azure_role_fetches_its_sign_in" {
   command = plan
 
   assert {
-    condition     = azurerm_role_assignment.pipeline_writer.role_definition_name == "Azure Kubernetes Service RBAC Writer" && azurerm_role_assignment.pipeline_writer.scope == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/katachi-test/providers/Microsoft.ContainerService/managedClusters/aks/namespaces/tcm-system"
-    error_message = "The pipeline writes in tcm-system and nowhere else."
+    condition     = keys(azurerm_role_assignment.pipeline) == ["cluster_user"]
+    error_message = "The pipeline holds one Azure role. Its rights inside the cluster are the release Role, which a person binds (setup.yml)."
   }
 
   assert {
-    condition     = azurerm_role_assignment.pipeline_cluster_user.role_definition_name == "Azure Kubernetes Service Cluster User Role" && azurerm_role_assignment.pipeline_cluster_user.scope == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/katachi-test/providers/Microsoft.ContainerService/managedClusters/aks"
+    condition     = azurerm_role_assignment.pipeline["cluster_user"].role_definition_name == "Azure Kubernetes Service Cluster User Role" && azurerm_role_assignment.pipeline["cluster_user"].scope == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/katachi-test/providers/Microsoft.ContainerService/managedClusters/aks"
     error_message = "At cluster scope the pipeline may only fetch its sign-in configuration."
   }
 }

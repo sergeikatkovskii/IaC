@@ -10,6 +10,7 @@ module "katachi" {
   source = "../../modules/environment"
 
   environment         = "production"
+  subscription_name   = var.subscription_name
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -24,6 +25,7 @@ module "katachi" {
   postgres_sku_name               = var.postgres_sku_name
   postgres_admin_password_version = var.postgres_admin_password_version
 
+  kubernetes_version       = var.kubernetes_version
   cluster_sku_tier         = var.cluster_sku_tier
   node_vm_size             = var.node_vm_size
   node_min_count           = var.node_min_count

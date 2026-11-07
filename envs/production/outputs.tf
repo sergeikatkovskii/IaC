@@ -33,6 +33,11 @@ output "pipeline_client_id" {
   value = module.katachi.pipeline_client_id
 }
 
+output "pipeline_principal_id" {
+  description = "The pipeline's object id: setup.yml binds the release Role to it (KAT-648 T-005)."
+  value       = module.katachi.pipeline_principal_id
+}
+
 output "cluster_name" {
   value = module.katachi.cluster_name
 }

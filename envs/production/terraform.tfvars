@@ -6,6 +6,7 @@
 # the production cutover decides them.
 
 subscription_id     = "REPLACE-WITH-SUBSCRIPTION-GUID"
+subscription_name   = "AZ1-TCM"
 location            = "centralus"
 resource_group_name = "katachi-production"
 

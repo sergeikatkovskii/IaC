@@ -6,11 +6,11 @@ platform_environment: staging
 # cluster_name output).
 kube_context: katachi-staging-aks
 
-# KAT-648 §8 Q2: the addresses, the same values as Terraform's app_host, mcp_host
-# and admin_host (the operator console's host).
-app_host: REPLACE-staging-app-host
-mcp_host: REPLACE-staging-mcp-host
-admin_host: REPLACE-staging-admin-host
+# KAT-648 §8 Q2 (answered 2026-11-06): the addresses, the same values as
+# envs/staging/terraform.tfvars's app_host, mcp_host and admin_host.
+app_host: staging.katachi.io
+mcp_host: mcp.staging.katachi.io
+admin_host: admin.staging.katachi.io
 
 # Let's Encrypt, answered over HTTP on the gateway itself (cert-manager's Gateway API
 # solver). The address it mails about expiring certificates:

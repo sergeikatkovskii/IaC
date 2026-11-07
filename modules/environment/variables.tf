@@ -11,6 +11,11 @@ variable "environment" {
   }
 }
 
+variable "subscription_name" {
+  type        = string
+  description = "The subscription this environment lives in, by its name (KAT-648 §8 Q1: staging AZ2-NonProd, production AZ1-TCM, as Azure names them). Nothing is planned in any other."
+}
+
 variable "location" {
   type        = string
   description = "Azure region (KAT-648 §8 Q1; centralus recommended)."
@@ -88,6 +93,12 @@ variable "postgres_admin_password_version" {
 variable "cluster_sku_tier" {
   type    = string
   default = "Free"
+}
+
+variable "kubernetes_version" {
+  type        = string
+  description = "The Kubernetes minor (\"1.35\"), or null for AKS's default. The patch channel keeps it current; a minor moves with minikube's profile and the pipeline's kubectl (KAT-648 T-005)."
+  default     = null
 }
 
 variable "node_vm_size" {

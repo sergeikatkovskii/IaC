@@ -19,6 +19,11 @@
     "type": "string",
     "value": "katachi-staging-aks"
   },
+  "cluster_resource_group": {
+    "sensitive": false,
+    "type": "string",
+    "value": "katachi-staging"
+  },
   "key_vault_name": {
     "sensitive": false,
     "type": "string",
@@ -28,6 +33,16 @@
     "sensitive": false,
     "type": "string",
     "value": "mcp.staging.example.test"
+  },
+  "pipeline_client_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "33333333-0000-0000-0000-000000000001"
+  },
+  "pipeline_principal_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "44444444-0000-0000-0000-000000000001"
   },
   "pod_cidr": {
     "sensitive": false,
@@ -48,6 +63,11 @@
     "sensitive": false,
     "type": "string",
     "value": "katachistgabcde.azurecr.io"
+  },
+  "subscription_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "22222222-0000-0000-0000-000000000001"
   },
   "tenant_id": {
     "sensitive": false,

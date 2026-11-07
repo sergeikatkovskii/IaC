@@ -21,20 +21,32 @@ Two ways to handle that, in order of preference:
    only applies to the *first* apply.
 2. **Keep it.** If you would rather not, store the file somewhere durable and
    deliberate. The repo `.gitignore` refuses `*.tfstate`, so it will not be
-   committed by accident — this state can contain the account's keys.
+   committed by accident — this state holds resource ids (the account's keys are off).
 
 ## Order of operations
 
+Applied once **in each subscription** (KAT-648 §8 Q1: AZ2-NonProd for staging, AZ1-TCM
+for production), each with its own workspace, so each subscription's state is its own.
+The committed values are `<subscription>.tfvars`; the subscription's id is in
+`<subscription>.local.tfvars`, which `.gitignore` keeps off this public repository.
+The root refuses to plan when the subscription the id names is not called
+`subscription_name` (KAT-648 T-005). tcm's `docs/runbooks/staging.md` has every step.
+
 ```bash
-cd envs/global
-terraform init
-terraform apply -var 'subscription_id=<guid>' -var 'state_account_name=katachitfstate'
+terraform -chdir=envs/global init
+terraform -chdir=envs/global workspace select -or-create az2-nonprod
+terraform -chdir=envs/global plan -var-file=az2-nonprod.tfvars -var-file=az2-nonprod.local.tfvars -out=az2-nonprod.tfplan
+terraform -chdir=envs/global apply az2-nonprod.tfplan
 ```
 
 The three outputs are what each env root's `backend.tf` hardcodes. A backend block
 cannot take variables, so those values are literal in `envs/*/backend.tf` and must
 match what this root created — change the name here and you change it there too.
+Production's state account needs a name of its own (storage account names are unique
+across Azure), so its `backend.tf` changes with it.
 
 Authentication is your `az login` identity: the env backends set
-`use_azuread_auth = true`, so no storage account key is ever written to a file or
+`use_azuread_auth = true`, the account takes no shared key, and this root gives whoever
+applies it *Storage Blob Data Contributor* on the account (owning a subscription grants no
+right to an account's data). No storage account key is ever written to a file or
 exported into a shell.
