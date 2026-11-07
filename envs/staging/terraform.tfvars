@@ -31,19 +31,25 @@ operator_ip_ranges = ["REPLACE"]
 # True only while first boot runs, then false and applied again (KAT-648 §8 Q10).
 first_boot_open = false
 
-# KAT-648 §8 Q3, recommended: Azure's managed PostgreSQL 15, at least B2s.
-postgres_sku_name = "B_Standard_B2s"
+# KAT-648 §8 Q3, Azure's managed PostgreSQL 15. B1ms at the founder's early shape
+# (2026-11-07): its 35 user connections hold staging's pools, which its overlay sizes
+# for them (tcm k8s/overlays/staging); B2s (414) when customers come.
+postgres_sku_name = "B_Standard_B1ms"
 
 # The minor minikube's kat648 profile proved the manifests on (1.35.1) and the
 # pipeline's kubectl matches; AKS keeps the patch current (KAT-648 T-005).
 kubernetes_version = "1.35"
 cluster_sku_tier   = "Free"
-node_vm_size       = "Standard_D2as_v5"
-node_min_count     = 2
-node_max_count     = 3
+# The founder's early shape (2026-11-07): one node, which staging's overlay is sized to
+# fit; two or three when customers come.
+node_vm_size   = "Standard_D2as_v5"
+node_min_count = 1
+node_max_count = 1
 
 log_retention_days = 30
-log_daily_quota_gb = 1
+# The early shape: ingestion stops for the day at 0.2 GB, at most about 17 USD a month.
+# The cluster sends only its audit log's changes, so a quiet staging stays well under.
+log_daily_quota_gb = 0.2
 
 # KAT-417's alerts, unchanged.
 enable_sas_alert = true
@@ -53,3 +59,7 @@ alert_email_receivers = {
 }
 
 skip_query_validation = true
+
+# KAT-648 T-005: staging is turned off on a schedule and on demand (the founder,
+# 2026-11-07): tcm's staging-power.yml, signed in as modules/power's identity.
+power_schedule = true

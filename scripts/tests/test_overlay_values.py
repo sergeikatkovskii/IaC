@@ -43,6 +43,8 @@ PIPELINE_PRINCIPAL_ID=44444444-0000-0000-0000-000000000001
 SMTP_HOST=smtp.azurecomm.net
 SMTP_USERNAME=katachi-staging-mail.55555555-0000-0000-0000-000000000001.00000000-0000-0000-0000-000000000001
 MAIL_FROM=donotreply@staging.example.test
+POSTGRES_SERVER_NAME=katachi-staging-pg-abcde
+POWER_CLIENT_ID=66666666-0000-0000-0000-000000000001
 """
 
 
@@ -73,6 +75,18 @@ class Overlay(unittest.TestCase):
         code, out = self.run_script()
         self.assertEqual(code, 0, out)
         self.assertEqual(self.env_file.read_text(), EXPECTED)
+
+    def test_an_environment_with_no_switch_has_no_power_client_id(self):
+        """KAT-648 T-005: only staging is turned off on a schedule; production's file
+        names no such identity rather than an empty one."""
+        outputs = json.loads(OUTPUTS.read_text())
+        outputs["power_client_id"]["value"] = None
+        path = pathlib.Path(self.tmp.name) / "outputs-no-power.json"
+        path.write_text(json.dumps(outputs))
+        self.assertEqual(overlay_values.main(["staging", "--outputs", str(path), "--tcm", str(self.tcm)]), 0)
+        written = (self.tcm / "k8s" / "overlays" / "staging" / "environment.env").read_text()
+        self.assertNotIn("POWER_CLIENT_ID", written)
+        self.assertIn("POSTGRES_SERVER_NAME=katachi-staging-pg-abcde", written)
 
     def test_refuses_an_overlay_that_does_not_exist(self):
         code, out = self.run_script(env="production")

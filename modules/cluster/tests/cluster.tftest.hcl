@@ -128,3 +128,15 @@ run "the_audit_log_leaves_the_cluster" {
     error_message = "Who changed what in the cluster must be written somewhere the cluster cannot erase."
   }
 }
+
+# KAT-648 T-005: staging is stopped on a schedule and on demand (the founder,
+# 2026-11-07), and Azure cannot stop a cluster whose nodes Node Autoprovisioning makes
+# (Microsoft, "Stop and start an AKS cluster"). Nodes come from the one pool.
+run "the_cluster_can_be_stopped" {
+  command = plan
+
+  assert {
+    condition     = azurerm_kubernetes_cluster.this.node_provisioning_profile[0].mode == "Manual"
+    error_message = "Node Autoprovisioning stops a cluster from being stopped; the pool's autoscaler makes the nodes."
+  }
+}

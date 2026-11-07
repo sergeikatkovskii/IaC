@@ -145,3 +145,12 @@ output "smtp_app_client_id" {
 output "email_service_name" {
   value = one(module.mail[*].email_service_name)
 }
+
+output "postgres_server_name" {
+  value = module.database.name
+}
+
+output "power_client_id" {
+  description = "What staging-power.yml signs in as; null where nothing turns the environment off."
+  value       = one(module.power[*].client_id)
+}

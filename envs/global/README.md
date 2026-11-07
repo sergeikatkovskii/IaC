@@ -42,8 +42,9 @@ terraform -chdir=envs/global apply az2-nonprod.tfplan
 The three outputs are what each env root's `backend.tf` hardcodes. A backend block
 cannot take variables, so those values are literal in `envs/*/backend.tf` and must
 match what this root created — change the name here and you change it there too.
-Production's state account needs a name of its own (storage account names are unique
-across Azure), so its `backend.tf` changes with it.
+Production's state account has a name of its own, `katachitfstateprd` (storage account
+names are unique across Azure), in `az1-tcm.tfvars` and `envs/production/backend.tf`, and
+production's budget mails at 200 (KAT-648 T-005).
 
 Authentication is your `az login` identity: the env backends set
 `use_azuread_auth = true`, the account takes no shared key, and this root gives whoever

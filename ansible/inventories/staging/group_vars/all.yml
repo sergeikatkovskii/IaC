@@ -23,4 +23,6 @@ acme_email: REPLACE-acme-contact-email
 gateway_service_type: LoadBalancer
 gateway_ip_name: REPLACE-terraform-output-gateway_ip_name
 gateway_ip_resource_group: REPLACE-terraform-output-gateway_ip_resource_group
-envoy_replicas: 2
+# One node at the founder's early shape (KAT-648 T-005): a second proxy there adds a
+# reservation and no redundancy.
+envoy_replicas: 1

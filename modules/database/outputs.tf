@@ -18,3 +18,8 @@ output "admin_login" {
 output "admin_secret_name" {
   value = var.admin_secret_name
 }
+
+output "name" {
+  description = "The server's name: what staging's schedule starts and stops (KAT-648 T-005)."
+  value       = azurerm_postgresql_flexible_server.this.name
+}

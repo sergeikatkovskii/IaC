@@ -19,16 +19,23 @@ operator_ip_ranges = ["REPLACE"]
 
 first_boot_open = false
 
-postgres_sku_name = "B_Standard_B2s"
+# The founder's shape (2026-11-07): B1ms, whose 35 user connections production's
+# overlay sizes its pools for (tcm k8s/overlays/production); B2s (414) when load asks.
+postgres_sku_name = "B_Standard_B1ms"
 
-cluster_sku_tier = "Free"
-node_vm_size     = "Standard_D2as_v5"
-node_min_count   = 2
-node_max_count   = 3
+# The founder's shape (2026-11-07, "two reserved node"): two Standard_D2as_v5, which he
+# reserves for a year in the portal (37.00 USD a node a month against 70.96), and no
+# third the reservation would not cover. The minor staging and the pipeline run.
+kubernetes_version = "1.35"
+cluster_sku_tier   = "Free"
+node_vm_size       = "Standard_D2as_v5"
+node_min_count     = 2
+node_max_count     = 2
 
 # 90 rather than staging's 30: an incident here is the one investigated weeks later.
 log_retention_days = 90
-log_daily_quota_gb = 1
+# Ingestion stops for the day at 0.3 GB: at most about 25 USD a month.
+log_daily_quota_gb = 0.3
 
 enable_sas_alert = true
 

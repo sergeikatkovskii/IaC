@@ -21,6 +21,7 @@ module "katachi" {
   operator_ip_ranges = var.operator_ip_ranges
 
   first_boot_open = var.first_boot_open
+  power_schedule  = var.power_schedule
 
   postgres_sku_name               = var.postgres_sku_name
   postgres_admin_password_version = var.postgres_admin_password_version

@@ -11,7 +11,7 @@
 terraform {
   backend "azurerm" {
     resource_group_name  = "katachi-tfstate"
-    storage_account_name = "katachitfstate"
+    storage_account_name = "katachitfstateprd" # AZ1-TCM's own: names are unique across Azure (free on 2026-11-07)
     container_name       = "tfstate"
     key                  = "production/katachi.tfstate"
     use_azuread_auth     = true

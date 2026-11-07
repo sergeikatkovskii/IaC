@@ -129,6 +129,10 @@ class Refusals(unittest.TestCase):
         self.assertEqual(free - price.FREE, set())
         self.assertIn("per message", price.USAGE["azurerm_communication_service"])
 
+    def test_staging_s_switch_costs_nothing(self):
+        """KAT-648 T-005: the identity, its sign-in and its custom role cost nothing."""
+        self.assertIn("azurerm_role_definition", price.FREE)
+
     def test_an_unknown_resource_type_is_refused_by_name(self):
         plan = recorded_plan()
         plan["resource_changes"].append({"address": "azurerm_redis_cache.surprise", "mode": "managed", "type": "azurerm_redis_cache",

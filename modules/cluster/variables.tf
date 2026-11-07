@@ -57,9 +57,11 @@ variable "node_min_count" {
   type    = number
   default = 2
 
+  # How many is the environment's to say (modules/environment): production two at
+  # least, staging one at the founder's early shape (KAT-648 T-005, 2026-11-07).
   validation {
-    condition     = var.node_min_count >= 2
-    error_message = "At least two nodes, so a node's upgrade or failure does not take the product down."
+    condition     = var.node_min_count >= 1
+    error_message = "At least one node."
   }
 }
 

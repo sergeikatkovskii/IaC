@@ -109,6 +109,13 @@ variable "node_vm_size" {
 variable "node_min_count" {
   type    = number
   default = 2
+
+  # Production keeps two, so a node's upgrade or failure does not take it down.
+  # Staging may start on one: the founder's early shape (KAT-648 T-005, 2026-11-07).
+  validation {
+    condition     = var.node_min_count >= (var.environment == "production" ? 2 : 1)
+    error_message = "Production runs on two nodes at least, so a node's upgrade or failure does not take the product down."
+  }
 }
 
 variable "node_max_count" {
@@ -170,4 +177,15 @@ variable "skip_query_validation" {
 variable "tags" {
   type    = map(string)
   default = {}
+}
+
+variable "power_schedule" {
+  type        = bool
+  description = "KAT-648 T-005: staging is turned off on a schedule and on demand, by a sign-in that may only read, start and stop its cluster and database (modules/power). Never production."
+  default     = false
+
+  validation {
+    condition     = !var.power_schedule || var.environment == "staging"
+    error_message = "Only staging is turned off by a job nobody approves; production stays up."
+  }
 }

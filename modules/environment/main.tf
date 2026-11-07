@@ -225,3 +225,20 @@ module "mail" {
   zone_name           = module.edge.zone_name
   tags                = local.tags
 }
+
+# KAT-648 T-005: staging off on a schedule and on demand (tcm .github/workflows/
+# staging-power.yml), signed in as an identity that may only read, start and stop.
+module "power" {
+  source = "../power"
+  count  = var.power_schedule ? 1 : 0
+
+  name_prefix         = local.prefix
+  resource_group_name = azurerm_resource_group.this.name
+  resource_group_id   = azurerm_resource_group.this.id
+  location            = var.location
+  cluster_id          = module.cluster.id
+  server_id           = module.database.id
+  github_repository   = var.github_repository
+  github_environment  = var.environment
+  tags                = local.tags
+}

@@ -67,6 +67,7 @@ FREE = frozenset({
     "azurerm_private_dns_zone_virtual_network_link",
     "azurerm_resource_group",
     "azurerm_role_assignment",
+    "azurerm_role_definition",  # KAT-648 T-005: staging's switch
     "azurerm_storage_container",
     "azurerm_subnet",
     "azurerm_user_assigned_identity",

@@ -141,3 +141,11 @@ output "smtp_app_client_id" {
 output "email_service_name" {
   value = module.katachi.email_service_name
 }
+
+output "postgres_server_name" {
+  value = module.katachi.postgres_server_name
+}
+
+output "power_client_id" {
+  value = module.katachi.power_client_id
+}

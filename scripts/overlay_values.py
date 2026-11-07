@@ -57,6 +57,14 @@ KEYS = [
     ("SMTP_HOST", "smtp_host", None),
     ("SMTP_USERNAME", "smtp_username", None),
     ("MAIL_FROM", "mail_from", None),
+    # KAT-648 T-005: what staging's schedule starts and stops, beside CLUSTER_NAME.
+    ("POSTGRES_SERVER_NAME", "postgres_server_name", None),
+]
+
+# Written only where Terraform made the thing: an environment with no schedule has no
+# switch to sign in as, and its file names none rather than an empty one.
+OPTIONAL_KEYS = [
+    ("POWER_CLIENT_ID", "power_client_id", None),
 ]
 
 SAFE = re.compile(r"^[A-Za-z0-9._:/@-]+$")
@@ -97,6 +105,8 @@ def render(env: str, outputs: dict) -> str:
         "# Do not edit: change Terraform, apply it, and run the script again (ARD-059 §3, §8).",
     ]
     lines += [f"{key}={value_for(outputs, output, member)}" for key, output, member in KEYS]
+    lines += [f"{key}={value_for(outputs, output, member)}" for key, output, member in OPTIONAL_KEYS
+              if (outputs.get(output) or {}).get("value") is not None]
     return "\n".join(lines) + "\n"
 
 

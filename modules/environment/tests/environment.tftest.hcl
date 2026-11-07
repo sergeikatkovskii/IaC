@@ -165,3 +165,53 @@ run "no_zone_means_no_mail_yet" {
     error_message = "Without a zone there is nowhere to verify a sending domain."
   }
 }
+
+# KAT-648 T-005, the founder's early shape (2026-11-07): staging may start on one node;
+# production keeps two, so a node's upgrade or failure does not take it down.
+run "staging_may_start_on_one_node" {
+  command = plan
+
+  variables {
+    node_min_count = 1
+    node_max_count = 1
+  }
+}
+
+run "production_runs_on_two_nodes_at_least" {
+  command = plan
+
+  variables {
+    environment    = "production"
+    node_min_count = 1
+    node_max_count = 1
+  }
+
+  expect_failures = [var.node_min_count]
+}
+
+# KAT-648 T-005: staging is turned off on a schedule and on demand (the founder,
+# 2026-11-07), by a sign-in that may only read, start and stop (modules/power).
+# Production is never turned off by a job nobody approves.
+run "staging_can_be_turned_off_on_a_schedule" {
+  command = plan
+
+  variables {
+    power_schedule = true
+  }
+
+  assert {
+    condition     = length(module.power) == 1
+    error_message = "Staging gets the switch its schedule signs in as."
+  }
+}
+
+run "production_has_no_unattended_switch" {
+  command = plan
+
+  variables {
+    environment    = "production"
+    power_schedule = true
+  }
+
+  expect_failures = [var.power_schedule]
+}

@@ -64,6 +64,16 @@
     "type": "number",
     "value": 414
   },
+  "postgres_server_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "katachi-staging-pg-abcde"
+  },
+  "power_client_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "66666666-0000-0000-0000-000000000001"
+  },
   "registry_login_server": {
     "sensitive": false,
     "type": "string",

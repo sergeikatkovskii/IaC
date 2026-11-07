@@ -161,3 +161,9 @@ variable "skip_query_validation" {
   description = "True on a first apply: StorageBlobLogs does not exist until the first log lands."
   default     = true
 }
+
+variable "power_schedule" {
+  type        = bool
+  description = "KAT-648 T-005: turned off on a schedule and on demand (staging only)."
+  default     = false
+}
