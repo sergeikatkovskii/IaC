@@ -62,3 +62,13 @@ variable "budget_contact_emails" {
     error_message = "A budget that mails nobody is a budget nobody reads."
   }
 }
+
+variable "operator_ip_ranges" {
+  type        = list(string)
+  description = "Where the founder runs Terraform from, as bare IPs (Azure Storage refuses /31 and /32): the only addresses the state answers (KAT-648 T-005). Never committed: it comes from <subscription>.local.tfvars."
+
+  validation {
+    condition     = length(var.operator_ip_ranges) > 0 && alltrue([for r in var.operator_ip_ranges : !can(regex("REPLACE|/3[12]$", upper(r)))])
+    error_message = "operator_ip_ranges is still a placeholder, or a /31 or /32 range Azure Storage refuses: list bare addresses."
+  }
+}

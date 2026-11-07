@@ -1,0 +1,65 @@
+# KAT-648 T-005 — what `trivy config` finds in this repository and we keep, each with
+# its reason. CI runs the scan with this file and fails on anything else
+# (.github/workflows/terraform.yml). Fixed rather than kept, the same day: the state
+# account's network (AZU-0012) and its infrastructure encryption (AZU-0061), and the
+# database's connection, checkpoint and throttle settings (AZU-0019, AZU-0021, AZU-0024).
+#
+# To keep another, add it here with a statement a reviewer can disagree with; to undo
+# one, delete it and change the code. The two that wait on the founder expire, so the
+# scan fails again until he decides.
+
+misconfigurations:
+  # The founder's decision, open since 2026-11-07. The API server answers any address
+  # because the pipeline runs on GitHub's hosted runners, whose addresses are not a
+  # fixed set; every request still needs an Entra sign-in (local accounts are off),
+  # and the pipeline holds only the release Role. Closing it means larger runners with
+  # static addresses (a paid GitHub plan), a runner of our own in Azure, or releasing
+  # through `az aks command invoke`.
+  - id: AZU-0041
+    paths: ["modules/cluster/main.tf"]
+    statement: "public API server, Entra sign-in only: GitHub's hosted runners have no fixed addresses; the founder's decision (KAT-648 T-005)"
+    expired_at: 2026-12-07
+  - id: AZU-0065
+    paths: ["modules/cluster/main.tf"]
+    statement: "not a private cluster, for the same reason as AZU-0041; the founder's decision (KAT-648 T-005)"
+    expired_at: 2026-12-07
+
+  # The control plane's audit logs go to Log Analytics by a diagnostic setting
+  # (modules/cluster). Container Insights would add every container's log to the same
+  # workspace, whose ingestion is most of what logs cost (up to 83.95 USD a month at
+  # the 1 GB daily cap); the product's errors go to its own error tracking (KAT-211).
+  - id: AZU-0040
+    paths: ["modules/cluster/main.tf"]
+    statement: "audit logs by diagnostic setting; no Container Insights, for its ingestion cost (the founder's cheapest-option rule)"
+
+  # Azure Policy runs Gatekeeper's pods on every cluster; on two nodes that is room the
+  # product needs. What may enter tcm-system is held by the release Role and setup.yml's
+  # checks, and the manifests by tests/test_k8s_manifests.py.
+  - id: AZU-0066
+    paths: ["modules/cluster/main.tf"]
+    statement: "no Azure Policy add-on on a two-node staging cluster; admission is held by the release Role and the manifest tests"
+
+  # Disks and the state account are encrypted with keys Microsoft manages; the state
+  # account is encrypted twice (infrastructure encryption). A key of our own would add
+  # a vault key, its rotation and its failure modes, and protect against nobody who can
+  # reach the data through Entra.
+  - id: AZU-0067
+    paths: ["modules/cluster/main.tf"]
+    statement: "OS disks encrypted with Microsoft-managed keys"
+  - id: AZU-0060
+    paths: ["envs/global/main.tf"]
+    statement: "the state account is encrypted with Microsoft-managed keys, twice (infrastructure encryption)"
+
+  # The check reads the queue service's classic logging; the state account holds blobs
+  # only, reached with Entra from one address, and Azure's activity log records every
+  # change to the account.
+  - id: AZU-0057
+    paths: ["envs/global/main.tf"]
+    statement: "no queues: blobs only, Entra-only, from the operator's address"
+
+  # The database administrator's password rotates by version
+  # (postgres_admin_password_version), never by date: an expired secret would stop
+  # first boot, which reads it.
+  - id: AZU-0017
+    paths: ["modules/database/main.tf"]
+    statement: "the admin password rotates by version; an expiry would stop first boot"

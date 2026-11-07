@@ -117,6 +117,18 @@ class TheCeiling(unittest.TestCase):
 
 
 class Refusals(unittest.TestCase):
+    def test_staging_mail_is_priced_by_use_and_its_records_cost_nothing(self):
+        """KAT-648 T-005: Azure Communication Services has no monthly fee; it charges per
+        message sent, and the domain, its records, the sender and the SMTP application
+        cost nothing of their own."""
+        free = {"azurerm_email_communication_service", "azurerm_email_communication_service_domain",
+                "azurerm_communication_service_email_domain_association",
+                "azurerm_email_communication_service_domain_sender_username",
+                "azurerm_dns_txt_record", "azurerm_dns_cname_record",
+                "azuread_application", "azuread_service_principal"}
+        self.assertEqual(free - price.FREE, set())
+        self.assertIn("per message", price.USAGE["azurerm_communication_service"])
+
     def test_an_unknown_resource_type_is_refused_by_name(self):
         plan = recorded_plan()
         plan["resource_changes"].append({"address": "azurerm_redis_cache.surprise", "mode": "managed", "type": "azurerm_redis_cache",

@@ -10,3 +10,7 @@ state_account_name = "katachitfstate"
 
 monthly_budget        = 0
 budget_contact_emails = ["sergei.katkovskii@gmail.com"]
+
+# Never a real value here (this repository is public): <subscription>.local.tfvars
+# gives the founder's address, and this placeholder is refused until it does.
+operator_ip_ranges = ["REPLACE"]

@@ -18,6 +18,9 @@ mock_provider "azurerm" {
   }
 }
 
+# KAT-648 T-005: the SMTP application is an Entra one (modules/mail).
+mock_provider "azuread" {}
+
 variables {
   environment           = "staging"
   subscription_name     = "AZ2-NonProd"
@@ -135,5 +138,30 @@ run "the_cluster_runs_the_minor_it_is_given" {
   assert {
     condition     = module.cluster.kubernetes_version == "1.35"
     error_message = "environment's kubernetes_version reaches the cluster."
+  }
+}
+
+# KAT-648 T-005: staging's mail (§8 Q5) comes with its zone, because the domain it
+# sends from is verified there; an environment with no zone here has none yet.
+run "mail_comes_with_the_zone_it_is_verified_in" {
+  command = plan
+
+  variables {
+    dns_zone_name = "staging.example.test"
+    app_host      = "staging.example.test"
+  }
+
+  assert {
+    condition     = length(module.mail) == 1 && output.smtp_host == "smtp.azurecomm.net"
+    error_message = "With a zone served here, staging sends mail through Azure Communication Services."
+  }
+}
+
+run "no_zone_means_no_mail_yet" {
+  command = plan
+
+  assert {
+    condition     = length(module.mail) == 0 && output.smtp_host == null
+    error_message = "Without a zone there is nowhere to verify a sending domain."
   }
 }

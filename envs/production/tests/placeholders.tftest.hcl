@@ -2,6 +2,7 @@
 # fail rather than plan clean (this repository's second rule). Reads the committed
 # terraform.tfvars as it stands.
 mock_provider "azurerm" {}
+mock_provider "azuread" {}
 
 run "the_committed_values_cannot_be_applied" {
   command = plan

@@ -49,6 +49,16 @@ DAYS_PER_MONTH = HOURS_PER_MONTH / 24
 FREE = frozenset({
     "azurerm_consumption_budget_subscription",
     "azurerm_dns_a_record",
+    # KAT-648 T-005: staging's mail. The services, the domain, its records, the sender
+    # and the SMTP application cost nothing of their own; sending does (USAGE).
+    "azurerm_dns_txt_record",
+    "azurerm_dns_cname_record",
+    "azurerm_email_communication_service",
+    "azurerm_email_communication_service_domain",
+    "azurerm_communication_service_email_domain_association",
+    "azurerm_email_communication_service_domain_sender_username",
+    "azuread_application",
+    "azuread_service_principal",
     "azurerm_federated_identity_credential",
     "azurerm_key_vault_secret",
     "azurerm_monitor_action_group",
@@ -66,6 +76,9 @@ FREE = frozenset({
 })
 
 USAGE = {
+    # Azure's Retail Prices API, product "Email", 2026-11-06: 0.00025 USD per message
+    # and 0.00012 USD per megabyte sent, no monthly fee.
+    "azurerm_communication_service": "mail: 0.00025 USD per message and 0.00012 per megabyte",
     "azurerm_key_vault": "operations: a few cents per 10,000",
     "azurerm_storage_account": "gigabytes stored and operations",
     "azurerm_monitor_scheduled_query_rules_alert_v2": "each rule, by how often it runs",

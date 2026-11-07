@@ -124,3 +124,24 @@ output "query_container_list" {
 output "query_sas_used" {
   value = module.storage_detection.query_sas_used
 }
+
+# KAT-648 T-005: what the product needs to send mail; null where there is no mail yet.
+output "smtp_host" {
+  value = one(module.mail[*].smtp_host)
+}
+
+output "smtp_username" {
+  value = one(module.mail[*].smtp_username)
+}
+
+output "mail_from" {
+  value = one(module.mail[*].mail_from)
+}
+
+output "smtp_app_client_id" {
+  value = one(module.mail[*].smtp_app_client_id)
+}
+
+output "email_service_name" {
+  value = one(module.mail[*].email_service_name)
+}

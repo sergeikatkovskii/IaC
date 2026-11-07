@@ -47,3 +47,12 @@ jobs:
 
       - name: Script tests
         run: python3 -m unittest discover -s scripts/tests -v
+
+      # KAT-648 T-005: misconfigurations, failing on any that .trivyignore.yaml does not
+      # keep with its reason. Trivy runs from its image by digest: never trivy-action,
+      # and never 0.69.4, 0.69.5 or 0.69.6 (CVE-2026-33634).
+      - name: Misconfigurations
+        run: |
+          docker run --rm -v "$PWD:/src:ro" \
+            aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c \
+            config --quiet --ignorefile /src/.trivyignore.yaml --exit-code 1 /src

@@ -10,6 +10,7 @@ mock_provider "azurerm" {
 variables {
   subscription_id       = "00000000-0000-0000-0000-000000000000"
   subscription_name     = "AZ2-NonProd"
+  operator_ip_ranges    = ["203.0.113.7"]
   state_account_name    = "katachitfstate"
   monthly_budget        = 150
   budget_contact_emails = ["ops@example.test"]
@@ -75,5 +76,22 @@ run "the_state_is_reached_with_entra_and_never_with_a_key" {
   assert {
     condition     = azurerm_role_assignment.state_writer.role_definition_name == "Storage Blob Data Contributor"
     error_message = "The person who applies may read and write the state's blobs."
+  }
+}
+
+# KAT-648 T-005, from trivy config (AZU-0012, AZU-0061): the state answers only the
+# address the founder runs Terraform from, and is encrypted twice at rest (set only
+# when the account is made).
+run "the_state_account_answers_only_the_operator" {
+  command = plan
+
+  assert {
+    condition     = azurerm_storage_account.tfstate.network_rules[0].default_action == "Deny" && toset(azurerm_storage_account.tfstate.network_rules[0].ip_rules) == toset(["203.0.113.7"])
+    error_message = "Nothing reaches the state but the operator's address."
+  }
+
+  assert {
+    condition     = azurerm_storage_account.tfstate.infrastructure_encryption_enabled == true
+    error_message = "The state is encrypted at the infrastructure layer as well."
   }
 }

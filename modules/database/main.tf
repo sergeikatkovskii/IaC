@@ -66,6 +66,9 @@ resource "azurerm_postgresql_flexible_server" "this" {
   depends_on = [azurerm_key_vault_secret.admin_password]
 }
 
+# A flexible server takes one parameter change at a time, and a second one sent while
+# the first runs fails ("an operation is already in progress"), so each setting below
+# waits for the one before it (KAT-648 T-005).
 resource "azurerm_postgresql_flexible_server_configuration" "require_secure_transport" {
   name      = "require_secure_transport"
   server_id = azurerm_postgresql_flexible_server.this.id
@@ -76,6 +79,8 @@ resource "azurerm_postgresql_flexible_server_configuration" "ssl_min_protocol_ve
   name      = "ssl_min_protocol_version"
   server_id = azurerm_postgresql_flexible_server.this.id
   value     = "TLSv1.3"
+
+  depends_on = [azurerm_postgresql_flexible_server_configuration.require_secure_transport]
 }
 
 # KAT-648 T-004: Azure creates only the extensions this lists, and a migration
@@ -85,10 +90,38 @@ resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
   name      = "azure.extensions"
   server_id = azurerm_postgresql_flexible_server.this.id
   value     = "PG_TRGM"
+
+  depends_on = [azurerm_postgresql_flexible_server_configuration.ssl_min_protocol_version]
 }
 
 # The same value, into the vault only db-bootstrap reads (KAT-648 T-004). No unit
 # ever connects as the administrator.
+# KAT-648 T-005, from trivy config: who connected, when the server checkpointed, and a
+# run of failed sign-ins from one address slowed. Free; the server keeps its own logs.
+resource "azurerm_postgresql_flexible_server_configuration" "log_connections" {
+  name      = "log_connections"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "on"
+
+  depends_on = [azurerm_postgresql_flexible_server_configuration.extensions]
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "log_checkpoints" {
+  name      = "log_checkpoints"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "on"
+
+  depends_on = [azurerm_postgresql_flexible_server_configuration.log_connections]
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "connection_throttle" {
+  name      = "connection_throttle.enable"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "on"
+
+  depends_on = [azurerm_postgresql_flexible_server_configuration.log_checkpoints]
+}
+
 resource "azurerm_key_vault_secret" "admin_password" {
   name             = var.admin_secret_name
   key_vault_id     = var.admin_vault_id

@@ -14,6 +14,11 @@ terraform {
       source  = "hashicorp/time"
       version = "~> 0.14.2"
     }
+    # KAT-648 T-005: modules/mail's SMTP application, made in the tenant az is signed in to.
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.10.0"
+    }
   }
 }
 
@@ -21,3 +26,5 @@ provider "azurerm" {
   features {}
   subscription_id = var.subscription_id
 }
+
+provider "azuread" {}

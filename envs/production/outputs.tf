@@ -121,3 +121,23 @@ output "query_container_list" {
 output "query_sas_used" {
   value = module.katachi.query_sas_used
 }
+
+output "smtp_host" {
+  value = module.katachi.smtp_host
+}
+
+output "smtp_username" {
+  value = module.katachi.smtp_username
+}
+
+output "mail_from" {
+  value = module.katachi.mail_from
+}
+
+output "smtp_app_client_id" {
+  value = module.katachi.smtp_app_client_id
+}
+
+output "email_service_name" {
+  value = module.katachi.email_service_name
+}

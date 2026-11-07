@@ -32,6 +32,17 @@ resource "azurerm_storage_account" "tfstate" {
   # KAT-648 T-005: the backends sign in with Entra (use_azuread_auth), so no key is
   # needed, and with the keys off none can be used.
   shared_access_key_enabled = false
+  # KAT-648 T-005, from trivy config: encrypted at the infrastructure layer as well
+  # (settable only when the account is made), and answering only the operator's
+  # address. Terraform manages the container through Azure Resource Manager, which
+  # these rules do not govern; the backends read the state from his address.
+  infrastructure_encryption_enabled = true
+
+  network_rules {
+    default_action = "Deny"
+    ip_rules       = var.operator_ip_ranges
+    bypass         = ["AzureServices"]
+  }
 
   # Terraform's own locking protects against two concurrent applies; versioning is
   # what protects against a corrupted or truncated state being written over a good

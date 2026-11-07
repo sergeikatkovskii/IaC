@@ -51,9 +51,15 @@ KEYS = [
     ("CLUSTER_RESOURCE_GROUP", "cluster_resource_group", None),
     ("PIPELINE_CLIENT_ID", "pipeline_client_id", None),
     ("PIPELINE_PRINCIPAL_ID", "pipeline_principal_id", None),
+    # KAT-648 T-005: where and as whom the product sends mail (Azure Communication
+    # Services over SMTP); tcm's k8s/components/mail puts them in backend-config. The
+    # password is the vault's, never an output.
+    ("SMTP_HOST", "smtp_host", None),
+    ("SMTP_USERNAME", "smtp_username", None),
+    ("MAIL_FROM", "mail_from", None),
 ]
 
-SAFE = re.compile(r"^[A-Za-z0-9._:/-]+$")
+SAFE = re.compile(r"^[A-Za-z0-9._:/@-]+$")
 PLACEHOLDER = re.compile(r"(^|[/_.-])REPLACE([/_.-]|$)")
 
 

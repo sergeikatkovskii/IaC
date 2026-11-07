@@ -29,6 +29,11 @@
     "type": "string",
     "value": "kat-stg-app-abcde"
   },
+  "mail_from": {
+    "sensitive": false,
+    "type": "string",
+    "value": "donotreply@staging.example.test"
+  },
   "mcp_host": {
     "sensitive": false,
     "type": "string",
@@ -63,6 +68,16 @@
     "sensitive": false,
     "type": "string",
     "value": "katachistgabcde.azurecr.io"
+  },
+  "smtp_host": {
+    "sensitive": false,
+    "type": "string",
+    "value": "smtp.azurecomm.net"
+  },
+  "smtp_username": {
+    "sensitive": false,
+    "type": "string",
+    "value": "katachi-staging-mail.55555555-0000-0000-0000-000000000001.00000000-0000-0000-0000-000000000001"
   },
   "subscription_id": {
     "sensitive": false,

@@ -9,6 +9,11 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 5.12.0"
     }
+    # KAT-648 T-005: modules/mail's SMTP application.
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.10.0"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.9.1"

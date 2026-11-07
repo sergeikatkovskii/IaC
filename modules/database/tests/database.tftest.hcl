@@ -95,3 +95,24 @@ run "the_extensions_the_migrations_create_are_allowed" {
     error_message = "pg_trgm is created by a migration, so azure.extensions lists it."
   }
 }
+
+# KAT-648 T-005, from trivy config (AZU-0019, AZU-0021, AZU-0024): the server says who
+# connected and when it checkpointed, and slows a run of failed sign-ins.
+run "the_server_logs_connections_and_throttles_failed_sign_ins" {
+  command = plan
+
+  assert {
+    condition     = azurerm_postgresql_flexible_server_configuration.log_connections.name == "log_connections" && azurerm_postgresql_flexible_server_configuration.log_connections.value == "on"
+    error_message = "Every connection is logged."
+  }
+
+  assert {
+    condition     = azurerm_postgresql_flexible_server_configuration.log_checkpoints.name == "log_checkpoints" && azurerm_postgresql_flexible_server_configuration.log_checkpoints.value == "on"
+    error_message = "Checkpoints are logged."
+  }
+
+  assert {
+    condition     = azurerm_postgresql_flexible_server_configuration.connection_throttle.name == "connection_throttle.enable" && azurerm_postgresql_flexible_server_configuration.connection_throttle.value == "on"
+    error_message = "Repeated failed sign-ins from one address are slowed."
+  }
+}

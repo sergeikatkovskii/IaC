@@ -212,3 +212,16 @@ module "storage_detection" {
   alert_webhook_url     = var.alert_webhook_url
   skip_query_validation = var.skip_query_validation
 }
+
+# KAT-648 T-005: staging's mail (§8 Q5), from the domain the zone above serves, which is
+# where Azure verifies it. An environment whose DNS lives elsewhere has none yet.
+module "mail" {
+  source = "../mail"
+  count  = var.dns_zone_name == "" ? 0 : 1
+
+  name_prefix         = local.prefix
+  resource_group_name = azurerm_resource_group.this.name
+  domain              = var.dns_zone_name
+  zone_name           = module.edge.zone_name
+  tags                = local.tags
+}
