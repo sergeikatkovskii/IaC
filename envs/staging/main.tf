@@ -15,6 +15,7 @@ module "katachi" {
 
   app_host           = var.app_host
   mcp_host           = var.mcp_host
+  admin_host         = var.admin_host
   dns_zone_name      = var.dns_zone_name
   operator_ip_ranges = var.operator_ip_ranges
 

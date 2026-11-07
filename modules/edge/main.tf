@@ -27,8 +27,9 @@ resource "azurerm_dns_zone" "this" {
 
 locals {
   hosts = var.dns_zone_name == "" ? {} : {
-    app = var.app_host
-    mcp = var.mcp_host
+    app   = var.app_host
+    mcp   = var.mcp_host
+    admin = var.admin_host
   }
 
   relative_names = {

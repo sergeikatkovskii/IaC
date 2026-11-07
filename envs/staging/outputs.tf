@@ -73,6 +73,10 @@ output "mcp_host" {
   value = module.katachi.mcp_host
 }
 
+output "admin_host" {
+  value = module.katachi.admin_host
+}
+
 output "postgres_fqdn" {
   value = module.katachi.postgres_fqdn
 }

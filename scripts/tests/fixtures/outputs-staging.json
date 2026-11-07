@@ -1,4 +1,9 @@
 {
+  "admin_host": {
+    "sensitive": false,
+    "type": "string",
+    "value": "admin.staging.example.test"
+  },
   "admin_key_vault_name": {
     "sensitive": false,
     "type": "string",

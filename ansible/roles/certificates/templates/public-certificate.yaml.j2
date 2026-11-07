@@ -1,4 +1,4 @@
-# KAT-648 T-007 — the certificate the gateway serves for both hosts.
+# KAT-648 T-007 — the certificate the gateway serves for its three hosts.
 {% if public_issuer == 'katachi-local-ca' %}
 # minikube: nothing outside the laptop can answer an ACME challenge, so a local CA
 # issues the certificate. A CA rather than a self-signed leaf, so a client can trust
@@ -66,6 +66,7 @@ spec:
   dnsNames:
     - "{{ app_host }}"
     - "{{ mcp_host }}"
+    - "{{ admin_host }}"
   issuerRef:
     kind: ClusterIssuer
     name: {{ public_issuer }}

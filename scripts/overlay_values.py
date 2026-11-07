@@ -33,6 +33,8 @@ KEYS = [
     ("REGISTRY", "registry_login_server", None),
     ("APP_HOST", "app_host", None),
     ("MCP_HOST", "mcp_host", None),
+    # KAT-648 T-007: the operator console's own host (§8 Q2), which the routes name.
+    ("ADMIN_HOST", "admin_host", None),
     ("TRUSTED_PROXY_CIDR", "pod_cidr", None),
     ("KEY_VAULT_NAME", "key_vault_name", None),
     ("ADMIN_KEY_VAULT_NAME", "admin_key_vault_name", None),

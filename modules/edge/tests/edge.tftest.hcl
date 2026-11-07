@@ -7,6 +7,7 @@ variables {
   location             = "centralus"
   app_host             = "staging.example.test"
   mcp_host             = "mcp.staging.example.test"
+  admin_host           = "admin.staging.example.test"
   cluster_principal_id = "44444444-4444-4444-4444-444444444444"
 }
 
@@ -33,7 +34,7 @@ run "no_zone_until_one_is_named" {
   }
 }
 
-run "a_named_zone_gets_both_hosts" {
+run "a_named_zone_gets_every_host" {
   command = plan
 
   variables {
@@ -41,8 +42,8 @@ run "a_named_zone_gets_both_hosts" {
   }
 
   assert {
-    condition     = length(azurerm_dns_zone.this) == 1 && toset([for r in azurerm_dns_a_record.host : r.name]) == toset(["staging", "mcp.staging"])
-    error_message = "Both hosts get an alias record in the named zone."
+    condition     = length(azurerm_dns_zone.this) == 1 && toset([for r in azurerm_dns_a_record.host : r.name]) == toset(["staging", "mcp.staging", "admin.staging"])
+    error_message = "The app, the MCP host and the operator console (KAT-648 §8 Q2) each get an alias record in the named zone."
   }
 }
 
@@ -55,4 +56,25 @@ run "a_host_outside_the_zone_is_refused" {
   }
 
   expect_failures = [var.app_host]
+}
+
+run "an_admin_host_outside_the_zone_is_refused" {
+  command = plan
+
+  variables {
+    dns_zone_name = "example.test"
+    admin_host    = "admin.other.test"
+  }
+
+  expect_failures = [var.admin_host]
+}
+
+run "a_placeholder_admin_host_is_refused" {
+  command = plan
+
+  variables {
+    admin_host = "REPLACE-staging-admin-host"
+  }
+
+  expect_failures = [var.admin_host]
 }

@@ -7,13 +7,16 @@ metadata:
 ---
 # How Envoy's Service is exposed: a NodePort on minikube, and on AKS a load
 # balancer on the static address Terraform made. Local keeps the client's own
-# address, so each per-IP cap is per IP (KAT-S9).
+# address, so each per-IP cap is per IP (KAT-S9). And TLS 1.3 towards every
+# upstream (ARD-043): Envoy's own default floor there is TLS 1.2.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
   name: {{ gateway_class_name }}
   namespace: {{ edge_namespace }}
 spec:
+  backendTLS:
+    minVersion: "1.3"
   provider:
     type: Kubernetes
     kubernetes:
@@ -83,9 +86,31 @@ spec:
           selector:
             matchLabels:
               {{ routes_label }}: "true"
+    # The operator console's own host (KAT-648 §8 Q2): the app's bundle and API.
+    - name: https-admin
+      protocol: HTTPS
+      port: 443
+      hostname: "{{ admin_host }}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: {{ public_certificate_secret }}
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              {{ routes_label }}: "true"
 ---
-# TLS 1.3 only (ARD-043), and no trust in a forwarded header a client sends: Envoy
-# appends the address it saw, and the product trusts only the gateway's pod range.
+# TLS 1.3 only (ARD-043), and no trust in a forwarded header a client sends.
+#
+# Deliberately no clientIPDetection. Left out, Envoy takes the client's address from
+# the connection itself and appends it to X-Forwarded-For, and the product believes
+# only what the gateway's own pods appended (TRUSTED_PROXY_CIDR, KAT-S9).
+# `xForwardedFor: {numTrustedHops: 0}` reads like the same thing and is its opposite:
+# Envoy Gateway makes it `use_remote_address: false` with the X-Forwarded-For
+# detection extension, so the last address a client wrote becomes the client, and a
+# forged header moved every per-IP cap (measured on minikube, KAT-648 T-007).
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
 metadata:
@@ -98,9 +123,6 @@ spec:
       name: {{ gateway_name }}
   tls:
     minVersion: "1.3"
-  clientIPDetection:
-    xForwardedFor:
-      numTrustedHops: 0
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -114,6 +136,7 @@ spec:
   hostnames:
     - "{{ app_host }}"
     - "{{ mcp_host }}"
+    - "{{ admin_host }}"
   rules:
     - filters:
         - type: RequestRedirect

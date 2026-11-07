@@ -11,6 +11,7 @@ resource_group_name = "katachi-production"
 
 app_host      = "REPLACE-production-app-host"
 mcp_host      = "REPLACE-production-mcp-host"
+admin_host    = "REPLACE-production-admin-host"
 dns_zone_name = ""
 
 operator_ip_ranges = ["REPLACE"]

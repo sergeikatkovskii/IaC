@@ -1,0 +1,9 @@
+---
+# KAT-648 T-007 — what the linter reads, so `ansible-lint` alone (CI's job, or a
+# person's) lints this directory's playbooks and nothing else. The venv and the
+# collection are built by bootstrap.sh from the hashed locks: third-party code.
+profile: production
+offline: true
+exclude_paths:
+  - .venv/
+  - collections/

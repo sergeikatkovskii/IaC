@@ -46,6 +46,16 @@ variable "mcp_host" {
   }
 }
 
+variable "admin_host" {
+  type        = string
+  description = "KAT-648 §8 Q2: the operator console's address."
+
+  validation {
+    condition     = !can(regex("(^|[/_.-])REPLACE([/_.-]|$)", var.admin_host))
+    error_message = "admin_host is still a placeholder: the address is the founder's answer to KAT-648 §8 Q2."
+  }
+}
+
 variable "dns_zone_name" {
   type        = string
   description = "A zone served from this subscription, or empty when DNS lives elsewhere."

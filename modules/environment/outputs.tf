@@ -76,6 +76,10 @@ output "mcp_host" {
   value = var.mcp_host
 }
 
+output "admin_host" {
+  value = var.admin_host
+}
+
 output "postgres_fqdn" {
   value = module.database.fqdn
 }

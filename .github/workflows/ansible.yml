@@ -1,0 +1,46 @@
+# KAT-648 T-007 Step 7 — the platform playbook, linted and its syntax checked on
+# every change. Ansible is installed here only to read the playbook, from the same
+# hashed locks a person uses: this runs no playbook, reaches no cluster and holds no
+# credential. Only a person applies it, after reading its --check --diff (KAT-648
+# §8 Q10, ARD-059 §8).
+name: ansible
+
+on:
+  push:
+    paths:
+      - "ansible/**"
+      - ".github/workflows/ansible.yml"
+  pull_request:
+    paths:
+      - "ansible/**"
+      - ".github/workflows/ansible.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ansible
+    steps:
+      # Every Action is pinned by its commit SHA, the tag only as a comment (ARD-059 §2).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The runner's own Python 3.12. ansible-lint comes at the same Ansible as the
+      # playbook's, every hash checked, and kubernetes.core from its checksummed
+      # archive (bootstrap.sh).
+      - name: The linter, from the hashed lock
+        run: LOCK=requirements-lint.lock ./bootstrap.sh
+
+      - name: Syntax
+        run: ./.venv/bin/ansible-playbook --syntax-check -i inventories/minikube platform.yml
+
+      - name: Lint, production profile
+        env:
+          ANSIBLE_COLLECTIONS_PATH: ./collections
+        run: ./.venv/bin/ansible-lint --profile production --offline

@@ -1,0 +1,11 @@
+# The linter CI runs over the playbooks (KAT-648 T-007 Step 7), with the same Ansible
+# a person runs. It reads the playbooks: CI runs none of them, reaches no cluster and
+# holds no credential (KAT-648 §8 Q10).
+#
+# Each pin is the newest release at least a week old when it was chosen (ARD-059 §2).
+# requirements-lint.lock is generated from this file with every hash, on linux/amd64:
+#   pip-compile --generate-hashes --allow-unsafe --pip-args "--uploaded-prior-to P7D" \
+#     -o requirements-lint.lock requirements-lint.in
+-r requirements.in
+-c requirements.lock
+ansible-lint==26.10.1

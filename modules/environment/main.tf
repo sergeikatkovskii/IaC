@@ -177,6 +177,7 @@ module "edge" {
   location             = var.location
   app_host             = var.app_host
   mcp_host             = var.mcp_host
+  admin_host           = var.admin_host
   dns_zone_name        = var.dns_zone_name
   cluster_principal_id = module.cluster.principal_id
   tags                 = local.tags

@@ -10,6 +10,7 @@ run "the_committed_values_cannot_be_applied" {
     var.subscription_id,
     var.app_host,
     var.mcp_host,
+    var.admin_host,
     var.operator_ip_ranges,
   ]
 }

@@ -6,9 +6,15 @@ set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
 python="${PYTHON:-python3.12}"
+# LOCK=requirements-lint.lock adds ansible-lint, at the same Ansible (CI's lint job).
+lock="${LOCK:-requirements.lock}"
+case "$lock" in
+  requirements.lock|requirements-lint.lock) ;;
+  *) echo "LOCK must be requirements.lock or requirements-lint.lock" >&2; exit 2 ;;
+esac
 
 "$python" -m venv "$here/.venv"
-"$here/.venv/bin/python" -m pip install --quiet --require-hashes --no-deps -r "$here/requirements.lock"
+"$here/.venv/bin/python" -m pip install --quiet --require-hashes --no-deps -r "$here/$lock"
 
 download="$(mktemp -d)"
 trap 'rm -rf "$download"' EXIT

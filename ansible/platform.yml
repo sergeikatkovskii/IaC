@@ -20,6 +20,7 @@
       kube_context: "{{ kube_context }}"
       app_host: "{{ app_host }}"
       mcp_host: "{{ mcp_host }}"
+      admin_host: "{{ admin_host }}"
       acme_email: "{{ acme_email }}"
       gateway_ip_name: "{{ gateway_ip_name }}"
       gateway_ip_resource_group: "{{ gateway_ip_resource_group }}"

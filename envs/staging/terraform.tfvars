@@ -5,7 +5,11 @@
 # still to come, and `terraform plan` refuses it until it is real — deliberately,
 # because a placeholder that plans clean is how one gets applied by accident.
 #   subscription_id      KAT-648 §8 Q1 (later)
-#   app_host, mcp_host   KAT-648 §8 Q2 (staging.katachi.io and mcp.staging.katachi.io recommended, if the domain is his)
+#   app_host, mcp_host, admin_host, dns_zone_name
+#                        KAT-648 §8 Q2, answered 2026-11-06: staging.katachi.io,
+#                        mcp.staging.katachi.io and admin.staging.katachi.io, in a zone
+#                        staging.katachi.io. T-005 writes them here and in
+#                        ansible/inventories/staging together.
 #   operator_ip_ranges   the address he runs Terraform and writes the vault's values from
 
 subscription_id     = "REPLACE-WITH-SUBSCRIPTION-GUID"
@@ -14,6 +18,7 @@ resource_group_name = "katachi-staging"
 
 app_host      = "REPLACE-staging-app-host"
 mcp_host      = "REPLACE-staging-mcp-host"
+admin_host    = "REPLACE-staging-admin-host"
 dns_zone_name = ""
 
 operator_ip_ranges = ["REPLACE"]

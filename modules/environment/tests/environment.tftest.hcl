@@ -17,6 +17,7 @@ variables {
   resource_group_name   = "katachi-test"
   app_host              = "staging.example.test"
   mcp_host              = "mcp.staging.example.test"
+  admin_host            = "admin.staging.example.test"
   operator_ip_ranges    = ["203.0.113.7"]
   alert_email_receivers = { oncall = "ops@example.test" }
 }
@@ -27,6 +28,11 @@ run "the_values_the_overlay_needs_come_out" {
   assert {
     condition     = output.app_host == "staging.example.test" && output.mcp_host == "mcp.staging.example.test"
     error_message = "The hosts reach environment.env as APP_HOST and MCP_HOST."
+  }
+
+  assert {
+    condition     = output.admin_host == "admin.staging.example.test"
+    error_message = "The operator console's host reaches environment.env as ADMIN_HOST (KAT-648 §8 Q2)."
   }
 
   assert {
@@ -84,4 +90,14 @@ run "a_placeholder_host_is_refused" {
   }
 
   expect_failures = [var.app_host]
+}
+
+run "a_placeholder_admin_host_is_refused" {
+  command = plan
+
+  variables {
+    admin_host = "REPLACE"
+  }
+
+  expect_failures = [var.admin_host]
 }

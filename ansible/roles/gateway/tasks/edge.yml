@@ -15,13 +15,43 @@
     msg: The gateway resource types do not exist yet, so a dry run cannot show these objects. Apply once, then --check --diff shows them.
   when: ansible_check_mode and gateway_types.resources | length == 0
 
+# One object per apply, so --check --diff shows each object's own diff: the module
+# reports one only for a single object, and a dry run that says "changed" without
+# saying what is not a dry run a person can read.
 - name: Apply the edge namespace, the gateway and its policies
   kubernetes.core.k8s:
     context: "{{ kube_context }}"
     state: present
     apply: true
-    template: edge.yaml.j2
+    definition: "{{ item }}"
+  loop: "{{ lookup('ansible.builtin.template', 'edge.yaml.j2') | ansible.builtin.from_yaml_all | select | list }}"
+  loop_control:
+    label: "{{ item.kind }}/{{ item.metadata.name }}"
   when: not (ansible_check_mode and gateway_types.resources | length == 0)
+
+# Read back, in a dry run too: an apply never removes a field it did not set, so a
+# clientIPDetection added by hand would survive every run of this playbook — and
+# with it Envoy takes a client's own X-Forwarded-For as the client (measured on
+# minikube, KAT-648 T-007; see the ClientTrafficPolicy in edge.yaml.j2).
+- name: Read back how the gateway finds the client's address
+  kubernetes.core.k8s_info:
+    context: "{{ kube_context }}"
+    api_version: gateway.envoyproxy.io/v1alpha1
+    kind: ClientTrafficPolicy
+    name: "{{ gateway_name }}"
+    namespace: "{{ edge_namespace }}"
+  register: gateway_client_policy
+  when: gateway_types.resources | length > 0
+
+- name: Refuse a gateway that takes the client's address from a header
+  ansible.builtin.assert:
+    that: gateway_client_policy.resources | selectattr('spec.clientIPDetection', 'defined') | list | length == 0
+    fail_msg: >-
+      ClientTrafficPolicy {{ gateway_name }} in {{ edge_namespace }} has clientIPDetection, so
+      Envoy believes the address a client writes in X-Forwarded-For. Remove the field
+      (kubectl edit): this playbook's apply cannot remove a field it never set.
+    quiet: true
+  when: gateway_types.resources | length > 0
 
 - name: Wait for the gateway to be programmed
   kubernetes.core.k8s_info:

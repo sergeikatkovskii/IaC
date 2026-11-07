@@ -5,6 +5,7 @@ kube_context: kat648
 
 app_host: app.katachi.test
 mcp_host: mcp.katachi.test
+admin_host: admin.katachi.test
 
 # A local CA: nothing outside the laptop can reach an ACME challenge.
 public_issuer: katachi-local-ca

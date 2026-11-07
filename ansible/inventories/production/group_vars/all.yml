@@ -6,9 +6,11 @@ platform_environment: production
 # cluster_name output).
 kube_context: katachi-production-aks
 
-# KAT-648 §8 Q2: the address. The same values as Terraform's app_host and mcp_host.
+# KAT-648 §8 Q2: the addresses, the same values as Terraform's app_host, mcp_host
+# and admin_host (the operator console's host).
 app_host: REPLACE-production-app-host
 mcp_host: REPLACE-production-mcp-host
+admin_host: REPLACE-production-admin-host
 
 # Let's Encrypt, answered over HTTP on the gateway itself (cert-manager's Gateway API
 # solver). The address it mails about expiring certificates:

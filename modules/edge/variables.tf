@@ -46,6 +46,21 @@ variable "mcp_host" {
   }
 }
 
+variable "admin_host" {
+  type        = string
+  description = "The operator console's address (KAT-648 §8 Q2): one more name on the certificate, and one more route."
+
+  validation {
+    condition     = !can(regex("(^|[/_.-])REPLACE([/_.-]|$)", var.admin_host))
+    error_message = "admin_host is still a placeholder: the address is the founder's answer to KAT-648 §8 Q2."
+  }
+
+  validation {
+    condition     = var.dns_zone_name == "" || var.admin_host == var.dns_zone_name || endswith(var.admin_host, ".${var.dns_zone_name}")
+    error_message = "admin_host must be inside dns_zone_name."
+  }
+}
+
 variable "cluster_principal_id" {
   type        = string
   description = "The cluster's own identity, which attaches its load balancer to this address."

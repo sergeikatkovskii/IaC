@@ -21,6 +21,7 @@ EXPECTED = """\
 REGISTRY=katachistgabcde.azurecr.io
 APP_HOST=staging.example.test
 MCP_HOST=mcp.staging.example.test
+ADMIN_HOST=admin.staging.example.test
 TRUSTED_PROXY_CIDR=10.244.0.0/16
 KEY_VAULT_NAME=kat-stg-app-abcde
 ADMIN_KEY_VAULT_NAME=kat-stg-adm-abcde
