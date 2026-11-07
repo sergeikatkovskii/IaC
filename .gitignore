@@ -18,3 +18,10 @@ override.tf.json
 secrets.tfvars
 
 .DS_Store
+
+# Python test runs
+__pycache__/
+
+# Built by ansible/bootstrap.sh from the hashed locks
+ansible/.venv/
+ansible/collections/

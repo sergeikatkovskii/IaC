@@ -3,12 +3,12 @@
 # calls this — otherwise the module could only ever be used against one
 # subscription, and two envs could not differ.
 terraform {
-  required_version = ">= 1.6"
+  required_version = ">= 1.11"
 
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.0"
+      version = "~> 5.12.0"
     }
   }
 }

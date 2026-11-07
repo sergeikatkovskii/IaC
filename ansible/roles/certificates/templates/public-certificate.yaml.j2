@@ -1,0 +1,75 @@
+# KAT-648 T-007 — the certificate the gateway serves for both hosts.
+{% if public_issuer == 'katachi-local-ca' %}
+# minikube: nothing outside the laptop can answer an ACME challenge, so a local CA
+# issues the certificate. A CA rather than a self-signed leaf, so a client can trust
+# it (edge_checks.sh's CA_FILE) instead of skipping verification.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: katachi-selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: katachi-local-ca
+  namespace: {{ certificates_namespace }}
+spec:
+  isCA: true
+  commonName: Katachi local CA (minikube only)
+  secretName: katachi-local-ca
+  duration: 8760h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    kind: ClusterIssuer
+    name: katachi-selfsigned
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: katachi-local-ca
+spec:
+  ca:
+    secretName: katachi-local-ca
+{% else %}
+# Let's Encrypt, answered over HTTP on the gateway's own http listener.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    server: "{{ certificates_acme_server }}"
+    email: "{{ acme_email }}"
+    privateKeySecretRef:
+      name: letsencrypt-account-key
+    solvers:
+      - http01:
+          gatewayHTTPRoute:
+            parentRefs:
+              - name: {{ gateway_name }}
+                namespace: {{ edge_namespace }}
+                kind: Gateway
+                sectionName: http
+{% endif %}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: katachi-public
+  namespace: {{ edge_namespace }}
+spec:
+  secretName: {{ public_certificate_secret }}
+  dnsNames:
+    - "{{ app_host }}"
+    - "{{ mcp_host }}"
+  issuerRef:
+    kind: ClusterIssuer
+    name: {{ public_issuer }}
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always

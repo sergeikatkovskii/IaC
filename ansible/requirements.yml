@@ -1,0 +1,5 @@
+# Collections, each pinned exactly; collections.lock holds each tarball's SHA-256,
+# and bootstrap.sh refuses a download that does not match (ARD-059 §2).
+collections:
+  - name: kubernetes.core
+    version: "==6.6.0"

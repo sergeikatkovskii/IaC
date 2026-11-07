@@ -1,0 +1,68 @@
+{
+  "admin_key_vault_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "kat-stg-adm-abcde"
+  },
+  "app_host": {
+    "sensitive": false,
+    "type": "string",
+    "value": "staging.example.test"
+  },
+  "cluster_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "katachi-staging-aks"
+  },
+  "key_vault_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "kat-stg-app-abcde"
+  },
+  "mcp_host": {
+    "sensitive": false,
+    "type": "string",
+    "value": "mcp.staging.example.test"
+  },
+  "pod_cidr": {
+    "sensitive": false,
+    "type": "string",
+    "value": "10.244.0.0/16"
+  },
+  "postgres_admin_login": {
+    "sensitive": false,
+    "type": "string",
+    "value": "katachiadmin"
+  },
+  "postgres_max_user_connections": {
+    "sensitive": false,
+    "type": "number",
+    "value": 414
+  },
+  "registry_login_server": {
+    "sensitive": false,
+    "type": "string",
+    "value": "katachistgabcde.azurecr.io"
+  },
+  "tenant_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "00000000-0000-0000-0000-000000000001"
+  },
+  "unit_client_ids": {
+    "sensitive": false,
+    "type": [
+      "map",
+      "string"
+    ],
+    "value": {
+      "backend": "11111111-0000-0000-0000-000000000001",
+      "db-bootstrap": "11111111-0000-0000-0000-000000000005",
+      "mcp": "11111111-0000-0000-0000-000000000004",
+      "migrate": "11111111-0000-0000-0000-000000000006",
+      "redis": "11111111-0000-0000-0000-000000000007",
+      "scheduler": "11111111-0000-0000-0000-000000000003",
+      "worker": "11111111-0000-0000-0000-000000000002"
+    }
+  }
+}

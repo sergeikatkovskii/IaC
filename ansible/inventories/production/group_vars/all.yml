@@ -1,0 +1,24 @@
+# production. Every REPLACE is refused before anything is applied (platform.yml's first
+# task), because a placeholder that runs is how one reaches a real cluster.
+platform_environment: production
+
+# `az aks get-credentials` names the context after the cluster (Terraform's
+# cluster_name output).
+kube_context: katachi-production-aks
+
+# KAT-648 §8 Q2: the address. The same values as Terraform's app_host and mcp_host.
+app_host: REPLACE-production-app-host
+mcp_host: REPLACE-production-mcp-host
+
+# Let's Encrypt, answered over HTTP on the gateway itself (cert-manager's Gateway API
+# solver). The address it mails about expiring certificates:
+public_issuer: letsencrypt
+acme_email: REPLACE-acme-contact-email
+
+# The static address Terraform made for the gateway (outputs gateway_ip_name and
+# gateway_ip_resource_group). Envoy keeps the client's own address
+# (externalTrafficPolicy Local), so each per-IP cap is per IP (KAT-S9).
+gateway_service_type: LoadBalancer
+gateway_ip_name: REPLACE-terraform-output-gateway_ip_name
+gateway_ip_resource_group: REPLACE-terraform-output-gateway_ip_resource_group
+envoy_replicas: 2

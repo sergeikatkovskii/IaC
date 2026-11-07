@@ -1,0 +1,9 @@
+# What a person needs to run the platform playbook (KAT-648 T-007). Only a person
+# runs Ansible; no pipeline installs it (KAT-648 §8 Q10).
+#
+# Each pin is the newest release at least a week old when it was chosen (ARD-059 §2).
+# requirements.lock is generated from this file with every hash:
+#   pip-compile --generate-hashes --allow-unsafe --pip-args "--uploaded-prior-to P7D" \
+#     -o requirements.lock requirements.in
+ansible-core==2.19.14
+kubernetes==37.0.1

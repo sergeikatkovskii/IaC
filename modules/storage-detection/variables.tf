@@ -54,10 +54,21 @@ variable "storage_account_id" {
 
 # ── Where the logs land ────────────────────────────────────────────────────────
 
+variable "create_workspace" {
+  type        = bool
+  description = "True: this module creates its own workspace. False: it uses log_analytics_workspace_id."
+  default     = true
+}
+
 variable "log_analytics_workspace_id" {
   type        = string
-  description = "Existing workspace to send logs to. Leave empty to have this module create one."
+  description = "The workspace to send logs to when create_workspace is false."
   default     = ""
+
+  validation {
+    condition     = var.create_workspace || var.log_analytics_workspace_id != ""
+    error_message = "With create_workspace false, log_analytics_workspace_id must name the workspace."
+  }
 }
 
 variable "log_retention_days" {

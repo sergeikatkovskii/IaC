@@ -1,0 +1,16 @@
+# minikube, profile kat648: where the Kubernetes files are tried before Azure, and
+# nothing else (the founder, KAT-648 §8 Q14).
+platform_environment: local
+kube_context: kat648
+
+app_host: app.katachi.test
+mcp_host: mcp.katachi.test
+
+# A local CA: nothing outside the laptop can reach an ACME challenge.
+public_issuer: katachi-local-ca
+acme_email: ""
+
+gateway_service_type: NodePort
+gateway_ip_name: ""
+gateway_ip_resource_group: ""
+envoy_replicas: 1

@@ -1,0 +1,38 @@
+---
+# On a fresh cluster a dry run cannot show these objects: their resource types arrive
+# with the chart installed just before, which a dry run does not install. The first
+# apply creates the types; every dry run after that shows the whole diff.
+- name: Look for the gateway resource types
+  kubernetes.core.k8s_info:
+    context: "{{ kube_context }}"
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: envoyproxies.gateway.envoyproxy.io
+  register: gateway_types
+
+- name: Say why this dry run stops here
+  ansible.builtin.debug:
+    msg: The gateway resource types do not exist yet, so a dry run cannot show these objects. Apply once, then --check --diff shows them.
+  when: ansible_check_mode and gateway_types.resources | length == 0
+
+- name: Apply the edge namespace, the gateway and its policies
+  kubernetes.core.k8s:
+    context: "{{ kube_context }}"
+    state: present
+    apply: true
+    template: edge.yaml.j2
+  when: not (ansible_check_mode and gateway_types.resources | length == 0)
+
+- name: Wait for the gateway to be programmed
+  kubernetes.core.k8s_info:
+    context: "{{ kube_context }}"
+    api_version: gateway.networking.k8s.io/v1
+    kind: Gateway
+    name: "{{ gateway_name }}"
+    namespace: "{{ edge_namespace }}"
+    wait: true
+    wait_condition:
+      type: Programmed
+      status: "True"
+    wait_timeout: 300
+  when: not ansible_check_mode

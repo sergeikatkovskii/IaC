@@ -1,43 +1,124 @@
-# Env-root variables. `environment` is deliberately NOT one of them — it is fixed
-# in main.tf, because the directory IS the environment. Passing it in would let a
-# staging apply declare itself production.
+# Env-root variables. A placeholder is refused here, at the file that holds it,
+# before any module sees it (this repository's second rule).
 
 variable "subscription_id" {
   type        = string
-  description = "Subscription holding the storage account being watched."
-}
+  description = "KAT-648 §8 Q1: the founder gives the subscriptions later."
 
-variable "resource_group_name" {
-  type        = string
-  description = "Resource group for the alert rules and the action group."
+  validation {
+    condition     = !can(regex("REPLACE", var.subscription_id))
+    error_message = "subscription_id is still a placeholder: the founder gives the subscription (KAT-648 §8 Q1)."
+  }
+
+  validation {
+    condition     = can(regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", var.subscription_id))
+    error_message = "subscription_id is a subscription GUID."
+  }
 }
 
 variable "location" {
   type        = string
-  description = "Region for the alert rules and, if created here, the workspace."
+  description = "KAT-648 §8 Q1: centralus recommended."
   default     = "centralus"
 }
 
-variable "storage_account_id" {
-  type        = string
-  description = "Full resource id of the storage account holding tenant objects."
+variable "resource_group_name" {
+  type = string
 }
 
-variable "log_analytics_workspace_id" {
+variable "app_host" {
   type        = string
-  description = "Existing workspace, or empty to have the module create one."
+  description = "KAT-648 §8 Q2: the product's address."
+
+  validation {
+    condition     = !can(regex("(^|[/_.-])REPLACE([/_.-]|$)", var.app_host))
+    error_message = "app_host is still a placeholder: the address is the founder's answer to KAT-648 §8 Q2."
+  }
+}
+
+variable "mcp_host" {
+  type        = string
+  description = "KAT-648 §8 Q2: the MCP host's address."
+
+  validation {
+    condition     = !can(regex("(^|[/_.-])REPLACE([/_.-]|$)", var.mcp_host))
+    error_message = "mcp_host is still a placeholder: the address is the founder's answer to KAT-648 §8 Q2."
+  }
+}
+
+variable "dns_zone_name" {
+  type        = string
+  description = "A zone served from this subscription, or empty when DNS lives elsewhere."
   default     = ""
 }
 
-variable "log_retention_days" {
+variable "operator_ip_ranges" {
+  type        = list(string)
+  description = "Where a person runs Terraform and writes the vault's values from."
+
+  validation {
+    condition     = length(var.operator_ip_ranges) > 0 && alltrue([for r in var.operator_ip_ranges : !can(regex("REPLACE", upper(r)))])
+    error_message = "operator_ip_ranges is still a placeholder: list the addresses the vault's values are written from."
+  }
+}
+
+variable "first_boot_open" {
+  type        = bool
+  description = "True only while first boot runs (KAT-648 T-004 and §8 Q10); false straight after."
+  default     = false
+}
+
+variable "postgres_sku_name" {
+  type        = string
+  description = "KAT-648 §8 Q3."
+  default     = "B_Standard_B2s"
+}
+
+variable "postgres_admin_password_version" {
   type        = number
-  description = "Workspace retention, 30-90."
-  default     = 30
+  description = "Raise by one to rotate the database administrator's password."
+  default     = 1
+}
+
+variable "cluster_sku_tier" {
+  type    = string
+  default = "Free"
+}
+
+variable "node_vm_size" {
+  type    = string
+  default = "Standard_D2as_v5"
+}
+
+variable "node_min_count" {
+  type    = number
+  default = 2
+}
+
+variable "node_max_count" {
+  type    = number
+  default = 3
+}
+
+variable "cluster_admin_object_ids" {
+  type        = list(string)
+  description = "Who may install the platform and grant rights in the cluster. Empty: whoever runs the apply."
+  default     = []
+}
+
+variable "log_retention_days" {
+  type    = number
+  default = 30
+}
+
+variable "log_daily_quota_gb" {
+  type    = number
+  default = 1
 }
 
 variable "enable_sas_alert" {
   type        = bool
-  description = "Alert 3: any SAS used at all. On since KAT-417 T-005 — this product mints none. See docs/runbooks/storage-alerts.md."
+  description = "KAT-417's Alert 3: any SAS used at all. On since KAT-417 T-005."
   default     = true
 }
 

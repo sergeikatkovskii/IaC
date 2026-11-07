@@ -17,7 +17,10 @@ locals {
   # The categories live on the blob service, not on the account.
   blob_service_id = "${var.storage_account_id}/blobServices/default"
 
-  workspace_id = var.log_analytics_workspace_id != "" ? var.log_analytics_workspace_id : azurerm_log_analytics_workspace.storage[0].id
+  # Decided by a flag and never by inspecting the id: an id made in the same apply
+  # is unknown at plan time, and a count cannot depend on it (KAT-648 T-005, where
+  # modules/environment passes its own workspace in).
+  workspace_id = var.create_workspace ? azurerm_log_analytics_workspace.storage[0].id : var.log_analytics_workspace_id
 
 
   query_anonymous_success = file("${path.module}/queries/anonymous-success.kql")
@@ -34,7 +37,7 @@ locals {
 # attached", for exactly that reason.
 
 resource "azurerm_log_analytics_workspace" "storage" {
-  count = var.log_analytics_workspace_id == "" ? 1 : 0
+  count = var.create_workspace ? 1 : 0
 
   name                = "katachi-storage-${local.suffix}"
   resource_group_name = var.resource_group_name

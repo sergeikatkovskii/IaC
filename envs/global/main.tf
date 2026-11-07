@@ -17,7 +17,7 @@ resource "azurerm_storage_account" "tfstate" {
   # State is the most sensitive thing in this repo: it holds resource ids and can
   # hold secrets in plaintext. None of these three is optional.
   allow_nested_items_to_be_public = false
-  public_network_access_enabled   = true # tighten to a private endpoint when a VNet exists
+  public_network_access           = "Enabled" # tighten to a private endpoint when a VNet exists
   min_tls_version                 = "TLS1_2"
 
   # Terraform's own locking protects against two concurrent applies; versioning is

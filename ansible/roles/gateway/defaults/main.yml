@@ -1,0 +1,8 @@
+---
+# Envoy Gateway on the Gateway API (the founder, KAT-648 §8 Q4). The newest release
+# at least a week old when chosen; it ships a minor each quarter, supported for six
+# months (https://gateway.envoyproxy.io/news/releases/).
+gateway_chart: oci://docker.io/envoyproxy/gateway-helm
+gateway_version: v1.9.3
+gateway_chart_sha256: 1a152513adbcdb0527d7bbe3ea9b090abeb87e4ec9f34b2c18ac8c37f3177541
+gateway_namespace: envoy-gateway-system

@@ -1,0 +1,122 @@
+# KAT-648 T-007 — the edge, shared by whatever the cluster serves. Katachi's own
+# routes attach from tcm-system (k8s/base/routes.yaml, applied by the release).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ edge_namespace }}
+---
+# How Envoy's Service is exposed: a NodePort on minikube, and on AKS a load
+# balancer on the static address Terraform made. Local keeps the client's own
+# address, so each per-IP cap is per IP (KAT-S9).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: {{ gateway_class_name }}
+  namespace: {{ edge_namespace }}
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        replicas: {{ envoy_replicas }}
+      envoyService:
+        type: {{ gateway_service_type }}
+        externalTrafficPolicy: Local
+{% if gateway_service_type == 'LoadBalancer' %}
+        annotations:
+          service.beta.kubernetes.io/azure-pip-name: "{{ gateway_ip_name }}"
+          service.beta.kubernetes.io/azure-load-balancer-resource-group: "{{ gateway_ip_resource_group }}"
+{% endif %}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ gateway_class_name }}
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: {{ gateway_class_name }}
+    namespace: {{ edge_namespace }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ gateway_name }}
+  namespace: {{ edge_namespace }}
+spec:
+  gatewayClassName: {{ gateway_class_name }}
+  listeners:
+    # Plain HTTP exists only to redirect, and to answer an ACME challenge.
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: https-app
+      protocol: HTTPS
+      port: 443
+      hostname: "{{ app_host }}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: {{ public_certificate_secret }}
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              {{ routes_label }}: "true"
+    - name: https-mcp
+      protocol: HTTPS
+      port: 443
+      hostname: "{{ mcp_host }}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: {{ public_certificate_secret }}
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              {{ routes_label }}: "true"
+---
+# TLS 1.3 only (ARD-043), and no trust in a forwarded header a client sends: Envoy
+# appends the address it saw, and the product trusts only the gateway's pod range.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: {{ gateway_name }}
+  namespace: {{ edge_namespace }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ gateway_name }}
+  tls:
+    minVersion: "1.3"
+  clientIPDetection:
+    xForwardedFor:
+      numTrustedHops: 0
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: redirect-to-https
+  namespace: {{ edge_namespace }}
+spec:
+  parentRefs:
+    - name: {{ gateway_name }}
+      sectionName: http
+  hostnames:
+    - "{{ app_host }}"
+    - "{{ mcp_host }}"
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301

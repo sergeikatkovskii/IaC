@@ -1,0 +1,665 @@
+{
+ "format_version": "1.2",
+ "terraform_version": "1.16.0",
+ "resource_changes": [
+  {
+   "address": "module.katachi.azurerm_resource_group.this",
+   "mode": "managed",
+   "type": "azurerm_resource_group",
+   "name": "this",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus",
+     "name": "katachi-staging"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.random_string.suffix",
+   "mode": "managed",
+   "type": "random_string",
+   "name": "suffix",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "length": 5
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.network.azurerm_virtual_network.this",
+   "mode": "managed",
+   "type": "azurerm_virtual_network",
+   "name": "this",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.network.azurerm_subnet.aks",
+   "mode": "managed",
+   "type": "azurerm_subnet",
+   "name": "aks",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.network.azurerm_subnet.postgres",
+   "mode": "managed",
+   "type": "azurerm_subnet",
+   "name": "postgres",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.network.azurerm_private_dns_zone.postgres",
+   "mode": "managed",
+   "type": "azurerm_private_dns_zone",
+   "name": "postgres",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "name": "katachi-staging.private.postgres.database.azure.com"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.network.azurerm_private_dns_zone_virtual_network_link.postgres",
+   "mode": "managed",
+   "type": "azurerm_private_dns_zone_virtual_network_link",
+   "name": "postgres",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.logs.azurerm_log_analytics_workspace.this",
+   "mode": "managed",
+   "type": "azurerm_log_analytics_workspace",
+   "name": "this",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus",
+     "sku": "PerGB2018",
+     "daily_quota_gb": 1,
+     "retention_in_days": 30
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.cluster.azurerm_user_assigned_identity.control_plane",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "control_plane",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.cluster.azurerm_user_assigned_identity.kubelet",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "kubelet",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.cluster.azurerm_role_assignment.control_plane_operates_kubelet",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "control_plane_operates_kubelet",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.cluster.azurerm_kubernetes_cluster.this",
+   "mode": "managed",
+   "type": "azurerm_kubernetes_cluster",
+   "name": "this",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus",
+     "sku_tier": "Free",
+     "default_node_pool": [
+      {
+       "vm_size": "Standard_D2as_v5",
+       "auto_scaling_enabled": true,
+       "min_count": 2,
+       "max_count": 3,
+       "node_count": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.cluster.azurerm_monitor_diagnostic_setting.audit",
+   "mode": "managed",
+   "type": "azurerm_monitor_diagnostic_setting",
+   "name": "audit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.azurerm_role_assignment.cluster_admin[\"x\"]",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "cluster_admin",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_user_assigned_identity.unit[\"backend\"]",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "unit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_user_assigned_identity.unit[\"worker\"]",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "unit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_user_assigned_identity.unit[\"scheduler\"]",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "unit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_user_assigned_identity.unit[\"mcp\"]",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "unit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_user_assigned_identity.unit[\"db-bootstrap\"]",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "unit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_federated_identity_credential.unit[\"backend\"]",
+   "mode": "managed",
+   "type": "azurerm_federated_identity_credential",
+   "name": "unit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_federated_identity_credential.unit[\"worker\"]",
+   "mode": "managed",
+   "type": "azurerm_federated_identity_credential",
+   "name": "unit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_federated_identity_credential.unit[\"scheduler\"]",
+   "mode": "managed",
+   "type": "azurerm_federated_identity_credential",
+   "name": "unit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_federated_identity_credential.unit[\"mcp\"]",
+   "mode": "managed",
+   "type": "azurerm_federated_identity_credential",
+   "name": "unit",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_user_assigned_identity.pipeline",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "pipeline",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_federated_identity_credential.pipeline",
+   "mode": "managed",
+   "type": "azurerm_federated_identity_credential",
+   "name": "pipeline",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_role_assignment.pipeline_cluster_user",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "pipeline_cluster_user",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.identities.azurerm_role_assignment.pipeline_writer",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "pipeline_writer",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.registry.azurerm_container_registry.this",
+   "mode": "managed",
+   "type": "azurerm_container_registry",
+   "name": "this",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus",
+     "sku": "Basic"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.registry.azurerm_role_assignment.pull[\"kubelet\"]",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "pull",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.registry.azurerm_role_assignment.push[\"pipeline\"]",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "push",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.vault_app.azurerm_key_vault.this",
+   "mode": "managed",
+   "type": "azurerm_key_vault",
+   "name": "this",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus",
+     "sku_name": "standard"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.vault_app.time_sleep.rbac",
+   "mode": "managed",
+   "type": "time_sleep",
+   "name": "rbac",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.vault_admin.azurerm_key_vault.this",
+   "mode": "managed",
+   "type": "azurerm_key_vault",
+   "name": "this",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus",
+     "sku_name": "standard"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.vault_admin.time_sleep.rbac",
+   "mode": "managed",
+   "type": "time_sleep",
+   "name": "rbac",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.database.azurerm_postgresql_flexible_server.this",
+   "mode": "managed",
+   "type": "azurerm_postgresql_flexible_server",
+   "name": "this",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus",
+     "sku_name": "B_Standard_B2s",
+     "storage_mb": 32768,
+     "version": "15"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.database.azurerm_postgresql_flexible_server_configuration.require_secure_transport",
+   "mode": "managed",
+   "type": "azurerm_postgresql_flexible_server_configuration",
+   "name": "require_secure_transport",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.database.azurerm_postgresql_flexible_server_configuration.ssl_min_protocol_version",
+   "mode": "managed",
+   "type": "azurerm_postgresql_flexible_server_configuration",
+   "name": "ssl_min_protocol_version",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.database.azurerm_key_vault_secret.admin_password",
+   "mode": "managed",
+   "type": "azurerm_key_vault_secret",
+   "name": "admin_password",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.storage.azurerm_storage_account.this",
+   "mode": "managed",
+   "type": "azurerm_storage_account",
+   "name": "this",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus",
+     "account_tier": "Standard",
+     "account_replication_type": "LRS"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.storage.azurerm_storage_container.attachments",
+   "mode": "managed",
+   "type": "azurerm_storage_container",
+   "name": "attachments",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.edge.azurerm_public_ip.gateway",
+   "mode": "managed",
+   "type": "azurerm_public_ip",
+   "name": "gateway",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus",
+     "sku": "Standard",
+     "allocation_method": "Static"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.edge.azurerm_role_assignment.cluster_network",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "cluster_network",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.storage_detection.azurerm_monitor_diagnostic_setting.blob",
+   "mode": "managed",
+   "type": "azurerm_monitor_diagnostic_setting",
+   "name": "blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.storage_detection.azurerm_monitor_action_group.storage_security",
+   "mode": "managed",
+   "type": "azurerm_monitor_action_group",
+   "name": "storage_security",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "module.katachi.module.storage_detection.azurerm_monitor_scheduled_query_rules_alert_v2.anonymous_success",
+   "mode": "managed",
+   "type": "azurerm_monitor_scheduled_query_rules_alert_v2",
+   "name": "anonymous_success",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.storage_detection.azurerm_monitor_scheduled_query_rules_alert_v2.container_list",
+   "mode": "managed",
+   "type": "azurerm_monitor_scheduled_query_rules_alert_v2",
+   "name": "container_list",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.module.storage_detection.azurerm_monitor_scheduled_query_rules_alert_v2.sas_used",
+   "mode": "managed",
+   "type": "azurerm_monitor_scheduled_query_rules_alert_v2",
+   "name": "sas_used",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "centralus"
+    }
+   }
+  },
+  {
+   "address": "module.katachi.data.azurerm_client_config.current",
+   "mode": "data",
+   "type": "azurerm_client_config",
+   "name": "current",
+   "change": {
+    "actions": [
+     "read"
+    ],
+    "after": {}
+   }
+  },
+  {
+   "address": "azurerm_public_ip.left_over",
+   "mode": "managed",
+   "type": "azurerm_public_ip",
+   "name": "left_over",
+   "change": {
+    "actions": [
+     "delete"
+    ],
+    "after": null
+   }
+  }
+ ],
+ "_note": "Shaped by hand on 2026-11-05 from modules/environment's resources, with only the attributes price.py reads. T-005 Step 11 prices the real plan."
+}

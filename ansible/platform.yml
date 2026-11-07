@@ -1,0 +1,67 @@
+---
+# KAT-648 T-007 — what any release needs, installed by a person (the founder,
+# KAT-648 §8 Q10: "ansible cannot run deployments", then yes to "Ansible sets up, and
+# the pipeline deploys"). It needs rights over the whole cluster, which is why no
+# pipeline runs it.
+#
+#   ./bootstrap.sh
+#   ./.venv/bin/ansible-playbook -i inventories/minikube platform.yml --check --diff
+#   ./.venv/bin/ansible-playbook -i inventories/minikube platform.yml
+- name: Set up the cluster's platform
+  hosts: localhost
+  gather_facts: false
+  vars:
+    edge_namespace: katachi-edge
+    gateway_name: katachi
+    gateway_class_name: katachi
+    routes_label: katachi.io/routes
+    public_certificate_secret: katachi-public-tls
+    checked_values:
+      kube_context: "{{ kube_context }}"
+      app_host: "{{ app_host }}"
+      mcp_host: "{{ mcp_host }}"
+      acme_email: "{{ acme_email }}"
+      gateway_ip_name: "{{ gateway_ip_name }}"
+      gateway_ip_resource_group: "{{ gateway_ip_resource_group }}"
+
+  pre_tasks:
+    - name: Refuse a placeholder before anything is applied
+      ansible.builtin.assert:
+        that: checked_values | dict2items | selectattr('value', 'search', 'REPLACE') | list | length == 0
+        fail_msg: >-
+          {{ platform_environment }}'s inventory still has placeholders:
+          {{ checked_values | dict2items | selectattr('value', 'search', 'REPLACE') | map(attribute='key') | join(', ') }}.
+          The addresses are the founder's answer to KAT-648 §8 Q2, and the gateway's
+          address comes from Terraform's outputs.
+        quiet: true
+
+    - name: Refuse an issuer or an exposure this playbook does not know
+      ansible.builtin.assert:
+        that:
+          - public_issuer in ['katachi-local-ca', 'letsencrypt']
+          - public_issuer != 'letsencrypt' or acme_email | length > 0
+          - gateway_service_type in ['NodePort', 'LoadBalancer']
+          - gateway_service_type != 'LoadBalancer' or (gateway_ip_name | length > 0 and gateway_ip_resource_group | length > 0)
+        fail_msg: Check public_issuer, acme_email, gateway_service_type and the gateway's address in the inventory.
+        quiet: true
+
+  tasks:
+    - name: Install Envoy Gateway
+      ansible.builtin.include_role:
+        name: gateway
+        tasks_from: install
+
+    - name: Install cert-manager
+      ansible.builtin.include_role:
+        name: certificates
+        tasks_from: install
+
+    - name: Make the edge
+      ansible.builtin.include_role:
+        name: gateway
+        tasks_from: edge
+
+    - name: Issue the public certificate
+      ansible.builtin.include_role:
+        name: certificates
+        tasks_from: issue

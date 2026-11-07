@@ -1,0 +1,39 @@
+---
+# Pulls one chart and refuses it unless its archive's SHA-256 is the pinned one:
+# a chart's version is a tag on a registry, and a tag is a name somebody can move
+# (ARD-059 §2). Sets chart_path for the install that follows.
+- name: Make a directory for the chart
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: -chart
+  register: chart_dir
+  check_mode: false
+  changed_when: false
+
+- name: Pull the chart {{ chart_ref ~ ':' ~ chart_version }}
+  ansible.builtin.command:
+    argv: [helm, pull, "{{ chart_ref }}", --version, "{{ chart_version }}", --destination, "{{ chart_dir.path }}"]
+  check_mode: false
+  changed_when: false
+
+- name: Read the archive's checksum
+  ansible.builtin.stat:
+    path: "{{ chart_dir.path }}/{{ chart_ref | basename }}-{{ chart_version }}.tgz"
+    checksum_algorithm: sha256
+  register: chart_archive
+  check_mode: false
+
+- name: Refuse a chart that is not the pinned one
+  ansible.builtin.assert:
+    that:
+      - chart_archive.stat.exists
+      - chart_archive.stat.checksum == chart_sha256
+    fail_msg: >-
+      {{ chart_ref }} {{ chart_version }} is not the archive that was pinned
+      (expected {{ chart_sha256 }}). Do not update the pin to make this pass: find out
+      why the registry now serves something else.
+    quiet: true
+
+- name: Remember where the verified chart is
+  ansible.builtin.set_fact:
+    chart_path: "{{ chart_archive.stat.path }}"

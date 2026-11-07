@@ -1,7 +1,11 @@
 # envs/global — the state backend itself
 
 Shared, environment-independent infrastructure: the storage account that
-`envs/staging` and `envs/production` keep their Terraform state in.
+`envs/staging` and `envs/production` keep their Terraform state in, and the
+subscription's monthly budget (KAT-648 T-005), which mails at 50, 80 and 100 per cent
+of actual spend and at 100 per cent forecast. It is applied first, so nothing that
+costs money exists without it. Its amount is the founder's ceiling (§8 Q7); the
+committed `0` is refused.
 
 **This is the one root with no `backend.tf`, and that is not an oversight.** It
 creates the account the other roots store state in, so it cannot store its own
