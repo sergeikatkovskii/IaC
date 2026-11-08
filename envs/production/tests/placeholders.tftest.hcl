@@ -34,8 +34,9 @@ run "the_committed_values_cannot_be_applied" {
 
 # KAT-648 T-005: the shape the founder approved for production (2026-11-07, "two
 # reserved node"): two Standard_D2as_v5, which he reserves for a year, PostgreSQL B1ms,
-# and logs capped at 0.3 GB a day — 138.40 USD a month with the reservation, at most
-# 163.59 with logs at the cap. The two never-committed values are given here; the
+# and logs capped at 0.3 GB a day — 160.30 USD a month with the reservation, at most
+# 185.49 with logs at the cap, AKS's own load balancer and outbound address included
+# (scripts/price.py, 2026-11-07). The two never-committed values are given here; the
 # hosts stay placeholders until production's are answered.
 run "the_committed_shape_is_two_reserved_nodes_and_the_smallest_database" {
   command = plan

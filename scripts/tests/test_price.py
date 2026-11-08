@@ -1,8 +1,9 @@
 """KAT-648 T-005 Step 5 — price.py, against a recorded plan and recorded prices.
 
 No test here touches the network: the prices are the Retail Prices API's answers
-recorded on 2026-11-05 (fixtures/prices-centralus.json), and urlopen is replaced
-by one that fails the test if it is called.
+recorded on 2026-11-05, and the load balancer's on 2026-11-07
+(fixtures/prices-centralus.json), and urlopen is replaced by one that fails the
+test if it is called.
 """
 import copy
 import io
@@ -33,8 +34,12 @@ ACR_BASIC = 0.1666     # Basic Registry Unit, per day
 IP = 0.005             # Standard IPv4 Static Public IP
 LOGS_GB = 2.76         # Analytics Logs Data Ingestion, the paid tier
 PRIVATE_ZONE = 0.5     # Private Zone, the first-25 tier
+LB = 0.025             # Standard Included LB Rules and Outbound Rules (Global), recorded 2026-11-07
 
-FIXED = HOURS * AKS_FREE + HOURS * PG_B2S + 32 * PG_GB + DAYS * ACR_BASIC + HOURS * IP + PRIVATE_ZONE
+# KAT-648 T-005: what AKS makes in its own resource group, which no plan shows: a
+# Standard load balancer and one outbound address (outbound_type = "loadBalancer").
+AKS_OWN = HOURS * LB + HOURS * IP
+FIXED = HOURS * AKS_FREE + HOURS * PG_B2S + 32 * PG_GB + DAYS * ACR_BASIC + HOURS * IP + PRIVATE_ZONE + AKS_OWN
 UP_TO = 1 * DAYS * LOGS_GB  # the workspace's daily cap, every day of the month
 MINIMUM = round(2 * HOURS * NODE + FIXED + UP_TO, 2)
 MAXIMUM = round(3 * HOURS * NODE + FIXED + UP_TO, 2)
@@ -94,6 +99,55 @@ class PricesTheRecordedPlan(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn(f"{MINIMUM:,.2f}", out)
         self.assertIn(f"{MAXIMUM:,.2f}", out)
+
+
+def cluster_of(plan):
+    return next(c for c in plan["resource_changes"] if c["type"] == "azurerm_kubernetes_cluster")
+
+
+class WhatAksMakesItself(unittest.TestCase):
+    """KAT-648 T-005: with outbound_type "loadBalancer", AKS makes a Standard load
+    balancer and an outbound address in its own resource group. Neither is in the
+    plan, and both bill every hour, a stopped cluster included. price.py left them
+    out until 2026-11-07, 21.90 USD a month low."""
+
+    def made(self, plan=None):
+        code, out = run(["--json"], plan)
+        self.assertEqual(code, 0, out)
+        charges = [c for c in json.loads(out)["charges"] if c["type"] == "azurerm_kubernetes_cluster"]
+        return ([c for c in charges if "load balancer" in c["label"]],
+                [c for c in charges if "outbound address" in c["label"]])
+
+    def test_its_load_balancer_and_its_outbound_address_are_priced(self):
+        balancer, address = self.made()
+        self.assertEqual([c["monthly"] for c in balancer], [round(HOURS * LB, 2)])  # 18.25
+        self.assertEqual([c["monthly"] for c in address], [round(HOURS * IP, 2)])   # 3.65
+
+    def test_a_cluster_with_no_network_block_is_priced_at_azures_defaults(self):
+        plan = recorded_plan()
+        del cluster_of(plan)["change"]["after"]["network_profile"]
+        balancer, address = self.made(plan)
+        self.assertEqual(len(balancer), 1)
+        self.assertEqual(len(address), 1)
+
+    def test_each_outbound_address_aks_makes_is_priced_and_none_the_plan_makes(self):
+        for profile, count in (({"managed_outbound_ip_count": 2}, 2),
+                               ({"outbound_ip_address_ids": ["/subscriptions/0/publicIPAddresses/out"]}, 0)):
+            with self.subTest(profile=profile):
+                plan = recorded_plan()
+                cluster_of(plan)["change"]["after"]["network_profile"][0]["load_balancer_profile"] = [profile]
+                balancer, address = self.made(plan)
+                self.assertEqual(len(balancer), 1)
+                self.assertEqual([c["monthly"] for c in address], [round(count * HOURS * IP, 2)] if count else [])
+
+    def test_a_load_balancer_or_a_way_out_no_rule_prices_is_refused(self):
+        for key, value in (("outbound_type", "managedNATGateway"), ("load_balancer_sku", "basic")):
+            with self.subTest(value=value):
+                plan = recorded_plan()
+                cluster_of(plan)["change"]["after"]["network_profile"][0][key] = value
+                code, out = run([], plan)
+                self.assertEqual(code, 2, out)
+                self.assertIn(value, out)
 
 
 class TheCeiling(unittest.TestCase):

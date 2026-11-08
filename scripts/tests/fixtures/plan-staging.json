@@ -172,6 +172,12 @@
        "max_count": 3,
        "node_count": null
       }
+     ],
+     "network_profile": [
+      {
+       "load_balancer_sku": "standard",
+       "outbound_type": "loadBalancer"
+      }
      ]
     }
    }

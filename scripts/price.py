@@ -24,6 +24,11 @@ A resource type in none of the three is refused by name, and so is a charge
 whose price is missing or ambiguous, because a total that quietly leaves
 something out is worse than no total.
 
+**What AKS makes itself is priced with the cluster.** AKS makes a Standard load
+balancer and an outbound address in its own resource group, so no plan shows
+them, and both bill every hour, a stopped cluster included. They were left out
+until 2026-11-07, 21.90 USD a month low (KAT-648 T-005).
+
 Exit codes: 0 priced and within the ceiling (or no ceiling given); 1 over the
 ceiling; 2 refused.
 
@@ -211,6 +216,39 @@ def price_cluster(resource: Resource, book: PriceBook) -> list:
     )
     charges.append(Charge(resource.address, resource.type, f"AKS control plane, {tier} tier", control, unit,
                           HOURS_PER_MONTH, HOURS_PER_MONTH))
+    return charges + aks_own_network(resource, book, region)
+
+
+def aks_own_network(resource: Resource, book: PriceBook, region: str) -> list:
+    """What AKS makes in its own resource group, which no plan shows. With
+    outbound_type "loadBalancer" (Azure's default, and modules/cluster's) it makes
+    a Standard load balancer, which the gateway's address sits on too, and one
+    outbound address unless the profile says otherwise. Up to five rules are one
+    price: the gateway's two and the way out's one are three. The data through it
+    is billed by the gigabyte, like the internet traffic nothing here prices."""
+    network = (resource.after.get("network_profile") or [{}])[0]
+    sku = network.get("load_balancer_sku") or "standard"
+    way_out = network.get("outbound_type") or "loadBalancer"
+    if sku != "standard":
+        raise Refused(f"no rule prices AKS's {sku} load balancer")
+    if way_out != "loadBalancer":
+        raise Refused(f"no rule prices AKS's outbound type {way_out}, which makes something else to bill")
+    meter = "Standard Included LB Rules and Outbound Rules"
+    hourly, unit = book.one(
+        "serviceName eq 'Load Balancer' and armRegionName eq 'Global' and priceType eq 'Consumption'",
+        lambda i: i["skuName"] == "Standard" and i["meterName"] == meter,
+        f"AKS's load balancer ({meter})",
+    )
+    charges = [Charge(resource.address, resource.type, "AKS's own load balancer, outside the plan", hourly, unit,
+                      HOURS_PER_MONTH, HOURS_PER_MONTH)]
+    profile = (network.get("load_balancer_profile") or [{}])[0]
+    if profile.get("outbound_ip_address_ids") or profile.get("outbound_ip_prefix_ids"):
+        return charges  # the plan makes those addresses, and they are priced there
+    count = profile.get("managed_outbound_ip_count") or 1
+    meter = "Standard IPv4 Static Public IP"
+    hourly, unit = book.one(ip_query(region), lambda i: i["meterName"] == meter, meter)
+    charges.append(Charge(resource.address, resource.type, f"{count} × AKS's own outbound address, outside the plan",
+                          hourly, unit, count * HOURS_PER_MONTH, count * HOURS_PER_MONTH))
     return charges
 
 
@@ -250,14 +288,14 @@ def price_registry(resource: Resource, book: PriceBook) -> list:
     return [Charge(resource.address, resource.type, f"Container registry, {sku}", daily, unit, DAYS_PER_MONTH, DAYS_PER_MONTH)]
 
 
+def ip_query(region: str) -> str:
+    return f"serviceName eq 'Virtual Network' and armRegionName eq '{region}' and productName eq 'IP Addresses' and priceType eq 'Consumption'"
+
+
 def price_public_ip(resource: Resource, book: PriceBook) -> list:
     region = region_of(resource)
     meter = f"{resource.after['sku']} IPv4 {resource.after['allocation_method']} Public IP"
-    hourly, unit = book.one(
-        f"serviceName eq 'Virtual Network' and armRegionName eq '{region}' and productName eq 'IP Addresses' and priceType eq 'Consumption'",
-        lambda i: i["meterName"] == meter,
-        meter,
-    )
+    hourly, unit = book.one(ip_query(region), lambda i: i["meterName"] == meter, meter)
     return [Charge(resource.address, resource.type, meter, hourly, unit, HOURS_PER_MONTH, HOURS_PER_MONTH)]
 
 
