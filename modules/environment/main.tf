@@ -28,6 +28,12 @@ locals {
   # is added, and its message points here.
   storage_units = ["backend", "mcp", "scheduler"]
 
+  # KAT-650 T-001: the units whose code makes a platform AI call, and so the only ones
+  # holding the Foundry role. Only the backend's does; tcm's
+  # test_only_the_backend_makes_a_platform_ai_call (KAT-650 T-002) fails the day another
+  # unit's code reaches the platform AI client, and its message points here.
+  ai_units = ["backend"]
+
   cluster_admins = length(var.cluster_admin_object_ids) > 0 ? toset(var.cluster_admin_object_ids) : toset([data.azurerm_client_config.current.object_id])
 }
 
@@ -187,6 +193,22 @@ module "storage" {
   operator_ip_ranges  = var.operator_ip_ranges
   data_principal_ids  = { for u in local.storage_units : u => module.identities.unit_principal_ids[u] }
   tags                = local.tags
+}
+
+# KAT-650 T-001 — the plan's AI (tcm ARD-024 rule 1). The founder's answers to §8 on
+# 2026-11-08: GPT first, gpt-6-luna, Global Standard. Keyless, and default-deny but for
+# the node subnet, which reaches it by its service endpoint (modules/network).
+module "foundry" {
+  source = "../foundry"
+
+  name                    = "kat-${local.short}-ai-${random_string.suffix.result}"
+  resource_group_name     = azurerm_resource_group.this.name
+  location                = var.location
+  allowed_subnet_ids      = [module.network.aks_subnet_id]
+  deployments             = { (var.ai_model) = { version = var.ai_model_version, capacity = var.ai_capacity } }
+  default_model           = var.ai_model
+  inference_principal_ids = { for u in local.ai_units : u => module.identities.unit_principal_ids[u] }
+  tags                    = local.tags
 }
 
 module "edge" {

@@ -37,6 +37,8 @@ CLIENT_ID_DB_BOOTSTRAP=11111111-0000-0000-0000-000000000005
 DB_MAX_USER_CONNECTIONS=414
 DB_ADMIN_USER=katachiadmin
 STORAGE_ACCOUNT_URL=https://katachistgdataabcde.blob.core.windows.net/
+AI_FOUNDRY_URL=https://kat-stg-ai-abcde.services.ai.azure.com/
+AI_MODEL_DEFAULT=gpt-6-luna
 AZURE_SUBSCRIPTION_ID=22222222-0000-0000-0000-000000000001
 CLUSTER_NAME=katachi-staging-aks
 CLUSTER_RESOURCE_GROUP=katachi-staging
@@ -182,6 +184,24 @@ class Overlay(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("storage_blob_endpoint", out)
         self.assertFalse(self.env_file.exists())
+
+    def test_the_plans_ai_reaches_the_overlay(self):
+        """KAT-650 T-001: where the backend calls the plan's AI, and the deployment it
+        calls, come from Terraform like the rest."""
+        code, out = self.run_script()
+        self.assertEqual(code, 0, out)
+        text = self.env_file.read_text()
+        self.assertIn("AI_FOUNDRY_URL=https://kat-stg-ai-abcde.services.ai.azure.com/\n", text)
+        self.assertIn("AI_MODEL_DEFAULT=gpt-6-luna\n", text)
+
+    def test_a_missing_ai_address_is_refused(self):
+        for output in ("ai_foundry_url", "ai_model_default"):
+            outputs = self.outputs()
+            del outputs[output]
+            code, out = self.run_script(outputs=outputs)
+            self.assertEqual(code, 2, output)
+            self.assertIn(output, out)
+            self.assertFalse(self.env_file.exists())
 
     def test_every_output_it_reads_is_declared_by_both_roots(self):
         """KAT-418 T-003: an output the script reads and an env root forgot to declare

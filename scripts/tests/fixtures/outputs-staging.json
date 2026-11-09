@@ -9,6 +9,21 @@
     "type": "string",
     "value": "kat-stg-adm-abcde"
   },
+  "ai_deployment_capacity": {
+    "sensitive": false,
+    "type": "number",
+    "value": 50
+  },
+  "ai_foundry_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://kat-stg-ai-abcde.services.ai.azure.com/"
+  },
+  "ai_model_default": {
+    "sensitive": false,
+    "type": "string",
+    "value": "gpt-6-luna"
+  },
   "app_host": {
     "sensitive": false,
     "type": "string",

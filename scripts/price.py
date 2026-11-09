@@ -62,6 +62,8 @@ FREE = frozenset({
     "azurerm_email_communication_service_domain",
     "azurerm_communication_service_email_domain_association",
     "azurerm_email_communication_service_domain_sender_username",
+    # KAT-650 T-001: the Foundry resource bills only for what its deployments serve.
+    "azurerm_cognitive_account",
     "azuread_application",
     "azuread_service_principal",
     "azurerm_federated_identity_credential",
@@ -85,6 +87,9 @@ USAGE = {
     # Azure's Retail Prices API, product "Email", 2026-11-06: 0.00025 USD per message
     # and 0.00012 USD per megabyte sent, no monthly fee.
     "azurerm_communication_service": "mail: 0.00025 USD per message and 0.00012 per megabyte",
+    # KAT-650 T-001: Global Standard is pay-per-token (Retail Prices API, centralus,
+    # 2026-11-08); reasoning tokens bill as output.
+    "azurerm_cognitive_deployment": "tokens: gpt-6-luna 0.10 in and 0.50 out USD per million, no monthly fee",
     "azurerm_key_vault": "operations: a few cents per 10,000",
     "azurerm_storage_account": "gigabytes stored and operations",
     "azurerm_monitor_scheduled_query_rules_alert_v2": "each rule, by how often it runs",

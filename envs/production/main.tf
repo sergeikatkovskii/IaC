@@ -40,4 +40,6 @@ module "katachi" {
   alert_email_receivers = var.alert_email_receivers
   alert_webhook_url     = var.alert_webhook_url
   skip_query_validation = var.skip_query_validation
+
+  ai_capacity = var.ai_capacity
 }

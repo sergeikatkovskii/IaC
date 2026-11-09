@@ -50,6 +50,11 @@ KEYS = [
     # as their own identities from T-004 on (backend-config's AZURE_STORAGE_ACCOUNT_URL).
     # Nothing reads it before T-004, which gives local's file a stand-in in this place.
     ("STORAGE_ACCOUNT_URL", "storage_blob_endpoint", None),
+    # KAT-650 T-001: the plan's AI. The Foundry resource's own address, which the
+    # backend signs in to as its identity, and the deployment every action calls
+    # (backend-config's AI_FOUNDRY_URL and AI_MODEL_DEFAULT, from KAT-650 T-002 on).
+    ("AI_FOUNDRY_URL", "ai_foundry_url", None),
+    ("AI_MODEL_DEFAULT", "ai_model_default", None),
     # KAT-648 T-005: what the pipeline (deploy.yml, first-boot.yml) signs in with and
     # reaches, and the identity setup.yml binds the release Role to. kustomize reads
     # none of these. tcm is private; IaC, which is public, never holds them.

@@ -167,3 +167,9 @@ variable "power_schedule" {
   description = "KAT-648 T-005: turned off on a schedule and on demand (staging only)."
   default     = false
 }
+
+# KAT-650 T-001: the plan's AI deployment's capacity, in thousands of tokens a minute.
+variable "ai_capacity" {
+  type        = number
+  description = "Drawn from this subscription's Foundry quota for the model (KAT-650 FR10). It costs nothing; tokens do."
+}

@@ -110,6 +110,19 @@ output "storage_blob_endpoint" {
   value = module.katachi.storage_blob_endpoint
 }
 
+# KAT-650 T-001: AI_FOUNDRY_URL and AI_MODEL_DEFAULT in tcm's environment.env.
+output "ai_foundry_url" {
+  value = module.katachi.ai_foundry_url
+}
+
+output "ai_model_default" {
+  value = module.katachi.ai_model_default
+}
+
+output "ai_deployment_capacity" {
+  value = module.katachi.ai_deployment_capacity
+}
+
 output "log_workspace_id" {
   value = module.katachi.log_workspace_id
 }

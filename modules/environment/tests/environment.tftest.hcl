@@ -31,6 +31,7 @@ variables {
   admin_host            = "admin.staging.example.test"
   operator_ip_ranges    = ["203.0.113.7"]
   alert_email_receivers = { oncall = "ops@example.test" }
+  ai_capacity           = 50
 }
 
 run "the_values_the_overlay_needs_come_out" {
@@ -256,4 +257,54 @@ run "the_account_address_comes_out" {
     condition     = output.storage_blob_endpoint == "https://katachistgdataabcde.blob.core.windows.net/"
     error_message = "The account's address reaches environment.env as STORAGE_ACCOUNT_URL (scripts/overlay_values.py)."
   }
+}
+
+# KAT-650 T-001 (the founder's answers to §8, 2026-11-08: "GPT fist", "pt-6-luna",
+# "global"): the plan's AI on Foundry. Only the backend's code makes a platform AI
+# call, so it alone holds the role; tcm's test_only_the_backend_makes_a_platform_ai_call
+# (KAT-650 T-002) ties this list to the code, and its message points here.
+run "only_the_backend_calls_the_plans_ai" {
+  command = plan
+
+  assert {
+    condition     = toset(module.foundry.holder_names) == toset(["backend"])
+    error_message = "The backend holds the Foundry role, and no other unit does: no other unit's code makes a platform AI call."
+  }
+}
+
+run "the_plans_ai_is_gpt_6_luna_and_its_address_comes_out" {
+  command = plan
+
+  override_resource {
+    target          = random_string.suffix
+    override_during = plan
+    values = {
+      result = "abcde"
+    }
+  }
+
+  assert {
+    condition     = output.ai_foundry_url == "https://kat-stg-ai-abcde.services.ai.azure.com/"
+    error_message = "The resource's address reaches environment.env as AI_FOUNDRY_URL (scripts/overlay_values.py)."
+  }
+
+  assert {
+    condition     = output.ai_model_default == "gpt-6-luna" && toset(module.foundry.deployment_names) == toset(["gpt-6-luna"])
+    error_message = "One deployment, gpt-6-luna, the founder's answer to §8 Q2, and it is the default: AI_MODEL_DEFAULT."
+  }
+
+  assert {
+    condition     = output.ai_deployment_capacity == 50
+    error_message = "The capacity given is the deployment's: a rate limit in thousands of tokens a minute, which costs nothing (FR10)."
+  }
+}
+
+run "a_capacity_below_one_is_refused_here_too" {
+  command = plan
+
+  variables {
+    ai_capacity = 0
+  }
+
+  expect_failures = [var.ai_capacity]
 }

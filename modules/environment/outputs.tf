@@ -114,6 +114,19 @@ output "storage_blob_endpoint" {
   value = module.storage.blob_endpoint
 }
 
+# KAT-650 T-001: where the backend calls the plan's AI, and the deployment it calls.
+output "ai_foundry_url" {
+  value = module.foundry.url
+}
+
+output "ai_model_default" {
+  value = module.foundry.default_model
+}
+
+output "ai_deployment_capacity" {
+  value = var.ai_capacity
+}
+
 output "log_workspace_id" {
   value = module.logs.workspace_id
 }

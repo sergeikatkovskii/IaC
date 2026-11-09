@@ -58,4 +58,9 @@ run "the_committed_shape_is_two_reserved_nodes_and_the_smallest_database" {
     condition     = output.postgres_max_user_connections == 35 && var.log_daily_quota_gb == 0.3
     error_message = "PostgreSQL B1ms, whose 35 connections production's pools are sized for, and logs capped at 0.3 GB a day."
   }
+
+  assert {
+    condition     = output.ai_deployment_capacity == 250 && output.ai_model_default == "gpt-6-luna"
+    error_message = "production's gpt-6-luna deployment takes 250 thousand tokens a minute, its subscription's whole Tier 1 pool for the model (KAT-650 FR10); it costs nothing."
+  }
 }

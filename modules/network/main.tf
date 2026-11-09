@@ -9,8 +9,9 @@ resource "azurerm_virtual_network" "this" {
   tags                = var.tags
 }
 
-# The vault and the storage account are default-deny and admit this subnet by its
-# service endpoints, so the nodes reach them and nothing else on the internet does.
+# The vault, the storage account and the Foundry resource (KAT-650 T-001) are default-deny
+# and admit this subnet by its service endpoints, so the nodes reach them and nothing else
+# on the internet does.
 resource "azurerm_subnet" "aks" {
   name                 = "aks-nodes"
   resource_group_name  = var.resource_group_name
@@ -23,6 +24,10 @@ resource "azurerm_subnet" "aks" {
 
   service_endpoint {
     service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
   }
 }
 

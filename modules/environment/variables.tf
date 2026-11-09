@@ -189,3 +189,27 @@ variable "power_schedule" {
     error_message = "Only staging is turned off by a job nobody approves; production stays up."
   }
 }
+
+# KAT-650 T-001: the plan's AI. The model is the founder's choice (§8 Q2, 2026-11-08), and
+# nothing in the product chooses one (FR1). The capacity is each environment's.
+variable "ai_model" {
+  type        = string
+  description = "The model the plan's AI runs on; its deployment is named after it."
+  default     = "gpt-6-luna"
+}
+
+variable "ai_model_version" {
+  type        = string
+  description = "The model's pinned version (Microsoft Learn: gpt-6-luna 2026-09-22, Global Standard in centralus)."
+  default     = "2026-09-22"
+}
+
+variable "ai_capacity" {
+  type        = number
+  description = "The deployment's capacity in thousands of tokens a minute, drawn from the subscription's quota for the model (KAT-650 FR10). It costs nothing."
+
+  validation {
+    condition     = var.ai_capacity >= 1 && floor(var.ai_capacity) == var.ai_capacity
+    error_message = "ai_capacity is a whole number of thousands of tokens a minute, at least 1."
+  }
+}

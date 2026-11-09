@@ -47,4 +47,9 @@ run "the_committed_shape_is_one_node_and_the_smallest_database" {
     condition     = output.postgres_max_user_connections == 35
     error_message = "staging's database is B1ms, whose 35 connections the pools are sized for."
   }
+
+  assert {
+    condition     = output.ai_deployment_capacity == 50 && output.ai_model_default == "gpt-6-luna"
+    error_message = "staging's gpt-6-luna deployment takes 50 thousand tokens a minute, a few calls a minute, enough to test on (KAT-650 FR10); it costs nothing."
+  }
 }

@@ -44,3 +44,10 @@ alert_email_receivers = {
 }
 
 skip_query_validation = true
+
+# KAT-650 T-001: the plan's AI, gpt-6-luna on Global Standard (the founder's
+# answers, 2026-11-08), at 250 thousand tokens a minute: the subscription's whole
+# Tier 1 pool for gpt-6-luna.
+# Microsoft's quota tier decides whether it can be deployed at all; the runbook
+# reads it first (docs/runbooks/staging.md in tcm).
+ai_capacity = 250

@@ -21,6 +21,8 @@ modules/            Reusable components. No provider block, no backend, no state
   database/           PostgreSQL Flexible Server 15, private, TLS 1.3 only
   storage/            tenant files, in KAT-417's shape, and the one role the units that do
                       storage work hold on its container (KAT-418)
+  foundry/            the plan's AI: a keyless Foundry resource that answers only the nodes'
+                      subnet, its model deployments, and the role the backend calls it with (KAT-650)
   edge/               the gateway's static address, and its DNS when the zone is served here
   environment/        all of the above for one environment, plus storage-detection
   storage-detection/  KAT-417's storage logging and its three security alerts

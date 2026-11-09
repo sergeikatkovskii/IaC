@@ -63,3 +63,10 @@ skip_query_validation = true
 # KAT-648 T-005: staging is turned off on a schedule and on demand (the founder,
 # 2026-11-07): tcm's staging-power.yml, signed in as modules/power's identity.
 power_schedule = true
+
+# KAT-650 T-001: the plan's AI, gpt-6-luna on Global Standard (the founder's
+# answers, 2026-11-08), at 50 thousand tokens a minute: a few calls a minute,
+# enough to test on.
+# Microsoft's quota tier decides whether it can be deployed at all; the runbook
+# reads it first (docs/runbooks/staging.md in tcm).
+ai_capacity = 50

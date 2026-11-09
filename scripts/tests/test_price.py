@@ -183,6 +183,26 @@ class Refusals(unittest.TestCase):
         self.assertEqual(free - price.FREE, set())
         self.assertIn("per message", price.USAGE["azurerm_communication_service"])
 
+    def test_the_plans_ai_costs_nothing_until_it_is_called(self):
+        """KAT-650 T-001: a Foundry resource bills only for what it serves, and a Global
+        Standard deployment is pay-per-token, with no monthly fee (feature §5a)."""
+        base = json.loads(run(["--json"])[1])
+        plan = recorded_plan()
+        for kind, name, after in (("azurerm_cognitive_account", "this", {"location": "centralus"}),
+                                  ("azurerm_cognitive_deployment", "models[\"gpt-6-luna\"]", {})):
+            plan["resource_changes"].append({
+                "address": f"module.katachi.module.foundry.{kind}.{name}", "mode": "managed", "type": kind,
+                "name": name, "change": {"actions": ["create"], "after": after}})
+        code, out = run(["--json"], plan)
+        self.assertEqual(code, 0, out)
+        report = json.loads(out)
+        self.assertEqual((report["monthly_minimum"], report["monthly_maximum"]),
+                         (base["monthly_minimum"], base["monthly_maximum"]))
+        self.assertIn("azurerm_cognitive_account", price.FREE)
+        billed = {u["type"]: u["billed_by"] for u in report["usage_priced"]}
+        self.assertIn("per million", billed["azurerm_cognitive_deployment"])
+        self.assertIn("no monthly fee", billed["azurerm_cognitive_deployment"])
+
     def test_staging_s_switch_costs_nothing(self):
         """KAT-648 T-005: the identity, its sign-in and its custom role cost nothing."""
         self.assertIn("azurerm_role_definition", price.FREE)

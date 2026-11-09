@@ -17,12 +17,12 @@ run "the_database_subnet_is_delegated_to_postgres_only" {
   }
 }
 
-run "the_node_subnet_reaches_the_vault_and_storage_by_service_endpoint" {
+run "the_node_subnet_reaches_the_vault_storage_and_foundry_by_service_endpoint" {
   command = plan
 
   assert {
-    condition     = toset([for e in azurerm_subnet.aks.service_endpoint : e.service]) == toset(["Microsoft.KeyVault", "Microsoft.Storage"])
-    error_message = "The node subnet needs exactly the Key Vault and Storage service endpoints: both are default-deny and admit this subnet."
+    condition     = toset([for e in azurerm_subnet.aks.service_endpoint : e.service]) == toset(["Microsoft.KeyVault", "Microsoft.Storage", "Microsoft.CognitiveServices"])
+    error_message = "The node subnet needs exactly the Key Vault, Storage and Cognitive Services service endpoints: all three are default-deny and admit this subnet (Foundry since KAT-650 T-001)."
   }
 }
 
