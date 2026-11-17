@@ -26,8 +26,8 @@ variable "namespace" {
 
 variable "units" {
   type        = list(string)
-  description = "The units that read the vault, each as its own service account. migrate and redis since KAT-648 T-003: the migration Job and Redis read their secrets through the CSI driver as themselves."
-  default     = ["backend", "worker", "scheduler", "mcp", "migrate", "redis"]
+  description = "The units that read the vault, each as its own service account. migrate and redis since KAT-648 T-003: the migration Job and Redis read their secrets through the CSI driver as themselves. Not the MCP host since KAT-654 T-008: a relay that holds nothing has no identity."
+  default     = ["backend", "worker", "scheduler", "migrate", "redis"]
 }
 
 variable "first_boot_open" {

@@ -58,7 +58,7 @@ run "the_values_the_overlay_needs_come_out" {
   }
 
   assert {
-    condition     = toset(keys(output.unit_client_ids)) == toset(["backend", "worker", "scheduler", "mcp", "migrate", "redis", "db-bootstrap"])
+    condition     = toset(keys(output.unit_client_ids)) == toset(["backend", "worker", "scheduler", "migrate", "redis", "db-bootstrap"])
     error_message = "Every unit's client id comes out, for its service account."
   }
 
@@ -218,26 +218,38 @@ run "production_has_no_unattended_switch" {
 }
 
 # KAT-418 T-003 (feature §8 Q7, the founder's "Recommendation accepted", 2026-11-07):
-# three units run storage code, and they alone hold the storage role: the API, the MCP
-# host, and the scheduler, whose nightly purge deletes files. The worker's jobs are
-# ping and deliver_webhook (tcm's test_the_worker_runs_no_storage_job, KAT-418 T-004,
-# ties this list to the code); the migration Job's pod carries no workload identity;
-# Redis and db-bootstrap never touch a file.
-run "storage_is_reached_by_the_api_mcp_and_the_scheduler" {
+# the units that run storage code alone hold the storage role: the API, and the
+# scheduler, whose nightly purge deletes files. The MCP host held it until KAT-654
+# T-008 made it a relay that holds nothing (attach_evidence runs in the API). The
+# worker's jobs are ping and deliver_webhook (tcm's test_the_worker_runs_no_storage_job,
+# KAT-418 T-004, ties this list to the code); the migration Job's pod carries no
+# workload identity; Redis and db-bootstrap never touch a file.
+run "storage_is_reached_by_the_api_and_the_scheduler" {
   command = plan
 
   assert {
-    condition     = toset(module.storage.holder_names) == toset(["backend", "mcp", "scheduler"])
-    error_message = "The API, the MCP host and the scheduler hold the storage role, and no other unit does."
+    condition     = toset(module.storage.holder_names) == toset(["backend", "scheduler"])
+    error_message = "The API and the scheduler hold the storage role, and no other unit does: not the MCP host, which holds nothing (KAT-654 T-008)."
   }
 }
 
-run "the_worker_migrate_and_redis_hold_no_storage_role" {
+run "the_worker_migrate_redis_and_the_mcp_host_hold_no_storage_role" {
   command = plan
 
   assert {
-    condition     = length(setintersection(toset(module.storage.holder_names), toset(["worker", "migrate", "redis", "db-bootstrap"]))) == 0
-    error_message = "The worker, the migration Job, Redis and db-bootstrap run no storage code, so none holds a storage role, and a token stolen there reaches no file."
+    condition     = length(setintersection(toset(module.storage.holder_names), toset(["worker", "migrate", "redis", "db-bootstrap", "mcp"]))) == 0
+    error_message = "The worker, the migration Job, Redis, db-bootstrap and the MCP host run no storage code, so none holds a storage role, and a token stolen there reaches no file."
+  }
+}
+
+# KAT-654 T-008: the MCP host is a relay that holds nothing, so it has no identity:
+# no managed identity, no federated credential, no vault role, no storage role.
+run "the_mcp_host_has_no_identity" {
+  command = plan
+
+  assert {
+    condition     = !contains(keys(output.unit_client_ids), "mcp")
+    error_message = "The MCP host holds nothing (KAT-654 T-008): it has no identity of its own."
   }
 }
 

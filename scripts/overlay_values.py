@@ -26,7 +26,9 @@ import re
 import sys
 
 ENVIRONMENTS = ("staging", "production")
-UNITS = ("backend", "worker", "scheduler", "mcp", "migrate", "redis", "db-bootstrap")
+# Each unit with its own identity. Not the MCP host since KAT-654 T-008: a relay
+# that holds nothing has none, so tcm's overlay carries no CLIENT_ID_MCP.
+UNITS = ("backend", "worker", "scheduler", "migrate", "redis", "db-bootstrap")
 
 # environment.env key -> (Terraform output, key inside a map output or None).
 # The order is tcm's too: its backend/tests/test_k8s_manifests.py fails a generated

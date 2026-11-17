@@ -15,8 +15,8 @@ run "each_unit_is_federated_to_exactly_its_own_service_account" {
   command = plan
 
   assert {
-    condition     = length(azurerm_federated_identity_credential.unit) == 6 && alltrue([for u, c in azurerm_federated_identity_credential.unit : c.subject == "system:serviceaccount:tcm-system:${u}"])
-    error_message = "backend, worker, scheduler, mcp, migrate and redis each sign in as their own service account in tcm-system, and nothing else."
+    condition     = length(azurerm_federated_identity_credential.unit) == 5 && alltrue([for u, c in azurerm_federated_identity_credential.unit : c.subject == "system:serviceaccount:tcm-system:${u}"])
+    error_message = "backend, worker, scheduler, migrate and redis each sign in as their own service account in tcm-system, and nothing else. The MCP host has no identity (KAT-654 T-008)."
   }
 
   assert {
@@ -79,7 +79,7 @@ run "every_identity_has_a_client_id_out" {
   command = plan
 
   assert {
-    condition     = toset(keys(output.unit_client_ids)) == toset(["backend", "worker", "scheduler", "mcp", "migrate", "redis", "db-bootstrap"])
+    condition     = toset(keys(output.unit_client_ids)) == toset(["backend", "worker", "scheduler", "migrate", "redis", "db-bootstrap"])
     error_message = "Each unit, and db-bootstrap, has an identity whose client id reaches the overlay; KAT-648 T-003 added migrate and redis, which read the vault too."
   }
 }

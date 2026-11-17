@@ -20,13 +20,16 @@ locals {
 
   # Every unit that reads the app vault, each as its own identity. KAT-648 T-003
   # added the migration Job and Redis, which the CSI driver fetches for as well.
-  app_units = ["backend", "worker", "scheduler", "mcp", "migrate", "redis"]
+  # Not the MCP host since KAT-654 T-008: it is a relay that holds nothing, with no
+  # identity at all (tcm's backend/tests/test_mcp_edge.py and test_secret_names.py).
+  app_units = ["backend", "worker", "scheduler", "migrate", "redis"]
 
   # KAT-418 T-003 (feature §8 Q7): the units whose code does storage work, and so the
   # only ones holding the storage role on the container. The worker runs no storage
   # job; tcm's test_the_worker_runs_no_storage_job (KAT-418 T-004) fails the day one
-  # is added, and its message points here.
-  storage_units = ["backend", "mcp", "scheduler"]
+  # is added, and its message points here. The MCP host left with KAT-654 T-008:
+  # attach_evidence runs in the backend, and the host's code reaches no storage.
+  storage_units = ["backend", "scheduler"]
 
   # KAT-650 T-001: the units whose code makes a platform AI call, and so the only ones
   # holding the Foundry role. Only the backend's does; tcm's

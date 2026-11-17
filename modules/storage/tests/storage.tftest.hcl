@@ -129,13 +129,13 @@ run "each_unit_given_holds_it_on_the_container_alone" {
 
   variables {
     data_principal_ids = {
-      backend = "aaaaaaaa-0000-0000-0000-000000000001"
-      mcp     = "aaaaaaaa-0000-0000-0000-000000000002"
+      backend   = "aaaaaaaa-0000-0000-0000-000000000001"
+      scheduler = "aaaaaaaa-0000-0000-0000-000000000002"
     }
   }
 
   assert {
-    condition     = length(azurerm_role_assignment.blob_data) == 2 && azurerm_role_assignment.blob_data["backend"].principal_id == "aaaaaaaa-0000-0000-0000-000000000001" && azurerm_role_assignment.blob_data["mcp"].principal_id == "aaaaaaaa-0000-0000-0000-000000000002"
+    condition     = length(azurerm_role_assignment.blob_data) == 2 && azurerm_role_assignment.blob_data["backend"].principal_id == "aaaaaaaa-0000-0000-0000-000000000001" && azurerm_role_assignment.blob_data["scheduler"].principal_id == "aaaaaaaa-0000-0000-0000-000000000002"
     error_message = "Each unit given holds the role once, as itself."
   }
 
@@ -155,7 +155,7 @@ run "each_unit_given_holds_it_on_the_container_alone" {
   }
 
   assert {
-    condition     = toset(output.holder_names) == toset(["backend", "mcp"])
+    condition     = toset(output.holder_names) == toset(["backend", "scheduler"])
     error_message = "The holders come out by name, for the environment's test."
   }
 }
